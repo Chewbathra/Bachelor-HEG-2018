@@ -21,13 +21,13 @@ Vous trouverez également à la racine de ce répertoire la convention de travai
 ### Syntax error or access violation: 1071 Specified key was too long; max key length is 767 bytes")
 Pour régler cette erreur, rendez vous dans le fichier "Providers/AppServiceProvider.php" et ajoutez :
 
-`
+```
 use Illuminate\Support\Facades\Schema;
 public function boot()
 {
   Schema::defaultStringLength(191);
 }
-`
+```
 
 
 
