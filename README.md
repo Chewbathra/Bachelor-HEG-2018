@@ -22,6 +22,7 @@ Vous trouverez également à la racine de ce répertoire la convention de travai
 Pour régler cette erreur, rendez vous dans le fichier "Providers/AppServiceProvider.php" et ajoutez :
 
 `
+use Illuminate\Support\Facades\Schema;
 public function boot()
 {
   Schema::defaultStringLength(191);
