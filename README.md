@@ -15,5 +15,19 @@ Ce répertoire comprendra 3 dossiers principaux. Un pour le travail de mémoire,
 
 Vous trouverez également à la racine de ce répertoire la convention de travail de mon Bachelor
 
+## Erreurs
+> Il est possible de trouver les erreurs suivantes lors de la création d'une api REST avec Laravel
+
+### Syntax error or access violation: 1071 Specified key was too long; max key length is 767 bytes")
+Pour régler cette erreur, rendez vous dans le fichier "Providers/AppServiceProvider.php" et ajoutez :
+
+```
+use Illuminate\Support\Facades\Schema;
+public function boot()
+{
+  Schema::defaultStringLength(191);
+}
+```
+
 
 
