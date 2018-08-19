@@ -45,7 +45,7 @@ class RegisterActivate extends Notification
         return (new MailMessage)
             ->subject('Confirmation du compte Parkaps')
             ->success()
-            ->greeting("Bonjour, ")
+            ->greeting("Bonjour $notifiable->name, ")
             ->line("Merci d'avoir créer un compte Parkaps ! Avant de commencer, veuillez le confirmer.")
             ->action('Confirmer le compte', url($url))
             ->salutation("Merci d'utiliser Parkaps !");
