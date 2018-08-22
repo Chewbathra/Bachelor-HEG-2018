@@ -5,7 +5,7 @@ import {API} from '../../config/provider';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 
-import {globalStyles, addPlaceStyle} from "../../style";
+import {globalStyles, addPlaceStyle, profileStyles} from "../../style";
 import {Header, Icon, Body, Title, Form, Item, Input, Button, Left, Text} from 'native-base';
 import {Loader} from "../../components/loader";
 
@@ -75,8 +75,31 @@ export class AddPlaceScreen extends React.Component {
     }
   }
 
+  validateLatitude(lat) {
+    const reg = new RegExp(/^(\+|-)?(?:90(?:(?:\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\.[0-9]{1,6})?))$/);
+    return reg.test(lat);
+  }
+
+  /**
+   * Validates a given longitude $long
+   *
+   * @param float|int|string $long Longitude
+   * @return bool `true` if $long is valid, `false` if not
+   */
+  validateLongitude(long) {
+    const reg = new RegExp(/^(\+|-)?(?:180(?:(?:\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\.[0-9]{1,6})?))$/);
+    return reg.test(long);
+  }
+
   watchPositionOnMap(){
-    this.props.navigation.navigate('MapModal', {latitude: this.state.latitude, longitude: this.state.longitude})
+    if(this.validateLatitude(this.state.latitude) && this.validateLongitude(this.state.longitude)){
+      this.props.navigation.navigate('MapModal', {latitude: this.state.latitude, longitude: this.state.longitude})
+    } else {
+     Alert.alert(
+       'Erreur',
+       "La latitude et/ou la longitude ne sont pas dans un format correct"
+     )
+    }
   }
 
   showImagePicker(){
@@ -84,6 +107,7 @@ export class AddPlaceScreen extends React.Component {
   }
 
   async saveCarPark(){
+    // this.props.navigation.navigate('AddSchedule', {update: this.props.navigation.getParam('update')});
     this.setState({
       loading: true
     }, () => {
@@ -91,10 +115,9 @@ export class AddPlaceScreen extends React.Component {
       const longitude = this.refs['longitude']._root._lastNativeText;
       const price = this.refs['price']._root._lastNativeText;
       const address = this.refs['address']._root._lastNativeText;
-      console.log(latitude, longitude, price, address)
-      API.createCarPark(latitude, longitude, address, 'ceci est une image', price, this.props.userStore.token, this.props.userStore.tokenType)
+      const description = this.refs['description']._root._lastNativeText;
+      API.createCarPark(latitude, longitude, address, 'ceci est une image', price, description, this.props.userStore.token, this.props.userStore.tokenType)
         .then(response => {
-          console.log(response);
           if(response.status == 201){
             ToastAndroid.showWithGravity(
               "Votre place de parking a correctement été créée",
@@ -168,13 +191,18 @@ export class AddPlaceScreen extends React.Component {
             <Text style={addPlaceStyle.inputError}>{this.state.errors["address"] == null ? '' : this.state.errors["address"]}</Text>
             <Item style={this.state.errors["price"] == null ? addPlaceStyle.input : addPlaceStyle.errorInput}>
               <Icon name='cash' style={globalStyles.icon}/>
-              <Input placeholder="Prix" placeholderTextColor="#959DAD" ref="price" keyboardType={"phone-pad"}/>
+              <Input placeholder="Prix par heure" placeholderTextColor="#959DAD" ref="price" keyboardType={"phone-pad"}/>
             </Item>
             <Text style={addPlaceStyle.inputError}>{this.state.errors["price"] == null ? '' : this.state.errors["price"]}</Text>
-            <Button bordered rounded style={addPlaceStyle.middleButton}
-              onPress={() => this.showImagePicker()}>
-              <Text style={addPlaceStyle.middleButtonText}>Sélectionner une image</Text>
-            </Button>
+            {/*<Button bordered rounded style={addPlaceStyle.middleButton}*/}
+              {/*onPress={() => this.showImagePicker()}>*/}
+              {/*<Text style={addPlaceStyle.middleButtonText}>Sélectionner une image</Text>*/}
+            {/*</Button>*/}
+            <Item style={this.state.errors["description"] == null ? addPlaceStyle.input : addPlaceStyle.errorInput}>
+              <Icon name='book' style={globalStyles.icon}/>
+              <Input placeholder="Description" placeholderTextColor="#959DAD" ref="description" multiline={true} numberOfLines={4} />
+            </Item>
+            <Text style={addPlaceStyle.inputError}>{this.state.errors["description"] == null ? '' : this.state.errors["description"]}</Text>
           </Form>
           <Button
             onPress={() => this.saveCarPark()}

@@ -19,7 +19,8 @@ class CreateCarParksTable extends Migration
             $table->string('longitude')->nullable(false);
             $table->longText('picture');
             $table->string('address')->nullable(false);
-            $table->decimal('price',10,2)->default(50);
+            $table->decimal('price',10,2)->nullable(false);
+            $table->string('description')->nullable(true)->default("");
             $table->unsignedInteger('user_id')->nullable(false);
             $table->timestamps();
             $table->softDeletes();

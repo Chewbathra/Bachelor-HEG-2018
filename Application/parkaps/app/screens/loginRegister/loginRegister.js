@@ -22,12 +22,12 @@ export class LoginRegisterScreen extends React.Component {
     //Watching if user alreay connected
     this.state = {
       loginOpen: true,
-      loading: true,
+      loading: false,
       errors: [],
       email: "",
       rememberMe: false
     };
-    this.userAlreadyConnected();
+    // this.userAlreadyConnected();
     //didFocus = when the screen focused
     this._didFocusSubscription = props.navigation.addListener('didFocus', payload =>
       BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid)
@@ -128,11 +128,12 @@ export class LoginRegisterScreen extends React.Component {
     const email = this.refs['loginEmail']._root._lastNativeText;
     const password = this.refs['loginPassword']._root._lastNativeText;
     API.loginWithEmail(email, password, this.state.rememberMe).then(response => {
+      console.log(response);
       if(response.status == 200){
-        if(this.state.rememberMe){
-          AsyncStorage.setItem('token',response.data.access_token);
-          AsyncStorage.setItem('tokenType', response.data.token_type);
-        }
+        // if(this.state.rememberMe){
+        //   AsyncStorage.setItem('token',response.data.access_token);
+        //   AsyncStorage.setItem('tokenType', response.data.token_type);
+        // }
         this.props.userStore.setToken(response.data.access_token, response.data.token_type);
         this.setState({
           loading: false,
@@ -143,15 +144,15 @@ export class LoginRegisterScreen extends React.Component {
       } else {
         this.setState({
           loading: false,
-          errors: response.data.errors
+          errors: response.data.errors || [{"other": "Pour une raison inconnue, la connexion à votre compte a échoué | " + response}]
         });
       }
     }).catch(response => {
-      console.log(response);
       this.setState({
         loading: false,
         errors: response.data.errors || [{"other": "Erreur inconnue | " + response}]
       });
+      console.log(response);
     })
 
   }
@@ -164,83 +165,79 @@ export class LoginRegisterScreen extends React.Component {
     const email = this.refs['registerEmail']._root._lastNativeText;
     const password = this.refs['registerPassword']._root._lastNativeText;
     const passwordConfirmation = this.refs['registerPasswordConfirmation']._root._lastNativeText;
-    API.registerWithEmail(name, email, password, passwordConfirmation)
-      .then(response => {
-        if(response.status == 201){
-          ToastAndroid.showWithGravity(
-            "Vous avez correctement été enregistré dans notre système. Veuillez valider votre compte grâce à l'email envoyé à " + email,
-            ToastAndroid.LONG,
-            ToastAndroid.CENTER
-          );
-          this.setState({
-            loading: false,
-            loginOpen: true,
-            errors: [],
-            email: email
-          }, () => {
-            this.refs['loginEmail']._root._lastNativeText = email;
-          })
-        } else {
-          this.setState({
-            errors: response.data.errors
-          })
-        }
-      }).catch(response => {
+    API.registerWithEmail(name, email, password, passwordConfirmation).then(response => {
+      if(response.status === 201){
+        ToastAndroid.showWithGravity(
+          "Vous avez correctement été enregistré dans notre système. Veuillez valider votre compte grâce à l'email envoyé à " + email,
+          ToastAndroid.LONG,
+          ToastAndroid.CENTER
+        );
         this.setState({
           loading: false,
-          errors: response.data.errors || [{"other": "Erreur inconnue | " + response}]
+          loginOpen: true,
+          errors: [],
+          email: email
+        }, () => {
+          this.refs['loginEmail']._root._lastNativeText = email;
         })
-        console.log(response);
+      } else {
+        this.setState({
+          errors: response.data.errors || [{"other": "Pour une raison inconnue, la création de votre compte a échoué | " + response}]
+        })
+      }
+    }).catch(response => {
+      this.setState({
+        loading: false,
+        errors: response.data.errors || [{"other": "Erreur inconnue | " + response}]
       })
+    })
   }
 
   render() {
-    const {loginOpen, rememberMe, email} = this.state;;
+    const {loginOpen, rememberMe, email, errors} = this.state;;
     const formLogin = <Form>
-      <Item style={this.state.errors["email"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
+      <Item style={errors["email"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
         <Icon name='at' style={globalStyles.icon}/>
         <Input key={1} name="emailLogin" placeholder="Email" placeholderTextColor="#959DAD" ref="loginEmail" defaultValue={email} autoCapitalize={'none'} keyboardType={"email-address"}/>
       </Item>
-      <Text style={logInUpStyle.inputError}>{this.state.errors["email"] == null ? '' : this.state.errors["email"]}</Text>
-      <Item style={this.state.errors["password"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
+      <Text style={logInUpStyle.inputError}>{errors["email"] == null ? '' : errors["email"]}</Text>
+      <Item style={errors["password"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
         <Icon name='lock' style={globalStyles.icon}/>
         <Input key={2} name="passwordLogin" secureTextEntry={true} placeholder="Mot de passe" placeholderTextColor="#959DAD" ref="loginPassword"/>
       </Item>
-      <Text style={logInUpStyle.inputError}>{this.state.errors["password"] == null ? '' : this.state.errors["password"]}</Text>
+      <Text style={logInUpStyle.inputError}>{errors["password"] == null ? '' : errors["password"]}</Text>
       <Item style={logInUpStyle.switch}>
-        {/*<Icon name='lock' style={globalStyles.icon}/>*/}
-        {/*<Input key={2} name="passwordLogin" placeholder="Mot de passe" placeholderTextColor="#959DAD" ref="loginPassword"/>*/}
         <Switch
           value={rememberMe}
           onValueChange={() => this.setState({rememberMe: !rememberMe})}
         />
         <Text style={logInUpStyle.switchText}>Se souvenir de moi</Text>
       </Item>
-      <Text style={logInUpStyle.inputError}>{this.state.errors["active"] == null ? '' : this.state.errors["active"]}</Text>
-      <Text style={logInUpStyle.inputError}>{this.state.errors["other"] == null ? '' : this.state.errors["other"]}</Text>
+      <Text style={logInUpStyle.inputError}>{errors["active"] == null ? '' : errors["active"]}</Text>
+      <Text style={logInUpStyle.inputError}>{errors["other"] == null ? '' : errors["other"]}</Text>
     </Form>;
 
     const formRegister = <Form >
-      <Item style={this.state.errors["name"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
+      <Item style={errors["name"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
         <Icon name='person' style={globalStyles.icon}/>
         <Input key={3} name="nameRegister" placeholder="Nom" placeholderTextColor="#959DAD" ref="registerName"/>
       </Item>
-      <Text style={logInUpStyle.inputError}>{this.state.errors["name"] == null ? '' : this.state.errors["name"]}</Text>
-      <Item style={this.state.errors["email"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
+      <Text style={logInUpStyle.inputError}>{errors["name"] == null ? '' : errors["name"]}</Text>
+      <Item style={errors["email"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
         <Icon name='at' style={globalStyles.icon}/>
         <Input key={4} name="emailRegister" placeholder="Email" placeholderTextColor="#959DAD" ref="registerEmail" autoCapitalize={'none'} keyboardType={"email-address"}/>
       </Item>
-      <Text style={logInUpStyle.inputError}>{this.state.errors["email"] == null ? '' : this.state.errors["email"]}</Text>
-      <Item style={this.state.errors["password"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
+      <Text style={logInUpStyle.inputError}>{errors["email"] == null ? '' : errors["email"]}</Text>
+      <Item style={errors["password"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
         <Icon name='lock' style={globalStyles.icon}/>
         <Input placeholder="Mot de passe" secureTextEntry={true} placeholderTextColor="#959DAD" ref="registerPassword"/>
       </Item>
-      <Text style={logInUpStyle.inputError}>{this.state.errors["password"] == null ? '' : this.state.errors["password"]}</Text>
-      <Item style={this.state.errors["password"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
+      <Text style={logInUpStyle.inputError}>{errors["password"] == null ? '' :errors["password"]}</Text>
+      <Item style={errors["password"] == null ? logInUpStyle.input : logInUpStyle.errorInput}>
         <Icon name='lock' style={globalStyles.icon}/>
         <Input key={5} placeholder="Confirmer le mot de passe" secureTextEntry={true} placeholderTextColor="#959DAD" ref="registerPasswordConfirmation"/>
       </Item>
-      <Text style={logInUpStyle.inputError}>{this.state.errors["other"] == null ? '' : this.state.errors["other"]}</Text>
+      <Text style={logInUpStyle.inputError}>{errors["other"] == null ? '' : terrors["other"]}</Text>
     </Form>;
 
     return (

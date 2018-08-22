@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, ScrollView, Dimensions } from "react-native";
+import { View, Text, Alert, ScrollView, Dimensions } from "react-native";
 import {inject} from 'mobx-react';
 import {API} from "../../config/provider";
 
 import { Button, Icon } from 'native-base';
 import {PlaceCard} from "../../components/placeCard";
+import {Loader} from "../../components/loader";
 
 import {profileStyles, globalStyles} from "../../style/index";
 
@@ -14,6 +15,7 @@ export class ProfileScreen extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      loading: true,
       user: {
         name: '',
         balance: 0,
@@ -27,14 +29,55 @@ export class ProfileScreen extends React.Component {
   }
 
   async fetchUser(){
-    console.log('fetch user');
     API.getUserInfos(this.props.userStore.token, this.props.userStore.tokenType).then(response => {
       console.log(response);
-      this.setState({
-        user: response.data.user,
-        carParks: response.data.carParks
-      })
+      if(response.status === 200){
+        this.setState({
+          user: response.data.user,
+        }, () => {
+          API.getUserCarParks(this.props.userStore.token, this.props.userStore.tokenType).then(response => {
+            if(response.status === 200){
+              this.setState({
+                loading: false,
+                carParks: response.data.carparks
+              })
+            } else {
+              Alert.alert(
+                "Erreur",
+                "Vos places de parking n'ont pas pu être récupérées"
+              );
+              this.setState({
+                loading: false
+              });
+            }
+          }).catch(error => {
+            console.log(error);
+            Alert.alert(
+              "Erreur",
+              "Vos places de parking n'ont pas pu être récupérées"
+            );
+            this.setState({
+              loading: false
+            });
+          })
+        })
+      } else {
+        Alert.alert(
+          "Erreur",
+          "Votre profil n'a pas pu être récupéré"
+        );
+        this.setState({
+          loading: false
+        });
+      }
       }).catch(error => {
+        this.setState({
+          loading: false
+        });
+        Alert.alert(
+          "Erreur",
+          "Votre profil n'a pas pu être récupéré"
+        );
         console.log(error);
       })
   }
@@ -51,7 +94,8 @@ export class ProfileScreen extends React.Component {
 
   showInfoCarPark(carPark){
     // console.log(carPark);
-    this.props.navigation.navigate("InfoCarPark", {carPark: carPark});
+    // this.props.navigation.navigate("InfoCarPark", {carPark: carPark});
+    this.props.navigation.navigate("AddSchedule", {carPark: carPark, update: () => this.fetchUser()});
   }
 
   openNewPlace(){
@@ -79,6 +123,8 @@ export class ProfileScreen extends React.Component {
     }
     return (
       <View style={profileStyles.container}>
+        <Loader
+          loading={this.state.loading} text={"Chargement"}/>
         <View style={profileStyles.profileContainer}>
           <Text style={profileStyles.name}>{user.name}</Text>
           <Button rounded  style={profileStyles.moreButton}

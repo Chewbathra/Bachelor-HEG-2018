@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // const client = axios.create({
 //   baseURL: 'http://parkaps.chalet-schupbach.ch/api',
-//   timeout: 3000,
+//   timeout: 5000,
 //   headers: {
 //     'Content-Type': 'application/json',
 //     'X-Requested-With': 'XMLHttpRequest',
@@ -13,7 +13,7 @@ import axios from 'axios';
 
 const client = axios.create({
   baseURL: 'http://192.168.1.127:8000/api',
-  timeout: 3000,
+  timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
@@ -39,8 +39,7 @@ export class API {
         password: password,
         password_confirmation: password_confirmation
       };
-      console.log(user);
-      client.post('register',JSON.stringify(user))
+      client.post('users',JSON.stringify(user))
       .then(response => {
         resolve(response);
       }).catch(error => {
@@ -104,16 +103,18 @@ export class API {
    * @param {string} tokenType
    * @return {Promise<Promise<any> | Promise>} - Return the server response
    */
-  static async createCarPark(latitude, longitude, address, picture, price, token, tokenType){
+  static async createCarPark(latitude, longitude, address, picture, price, description, token, tokenType){
     return new Promise((resolve, reject) => {
       const carPark = {
         latitude: latitude,
         longitude: longitude,
         address: address,
         picture: picture,
-        price: price
+        price: price,
+        description: description
       };
-      client.post('park/create', JSON.stringify(carPark), {
+      console.log(carPark);
+      client.post('carparks', JSON.stringify(carPark), {
         headers: {
           'Authorization': tokenType + ' ' + token
         }
@@ -141,7 +142,8 @@ export class API {
         longitude: longitude,
         radius: radius
       };
-      client.post('park/search',JSON.stringify(search),{
+      console.log(search, token, tokenType);
+      client.post('carparks/search',JSON.stringify(search),{
         headers: {
           'Authorization': tokenType + ' ' + token
         }
@@ -173,26 +175,40 @@ export class API {
     })
   }
 
+  static async getUserCarParks(token, tokenType){
+    return new Promise((resolve, reject) => {
+      client.get('user/carparks',{
+        headers: {
+          'Authorization': tokenType + ' ' + token
+        }
+      }).then(response => {
+        resolve(response);
+      }).catch(error => {
+        reject(error.response);
+      })
+    })
+  }
+
   /**
    * Create a new availability
-   * @param {timestamp} start
-   * @param {timestamp} end
+   * @param {Date} start
+   * @param {Date} end
    * @param {boolean} [daily=false]
    * @param {number} carParkId
    * @param {string} token
    * @param {string} tokenType
    * @return {Promise<Promise<any> | Promise>} - Return the server response
    */
-  static async createAvailability(start, end, daily = false, carParkId, token, tokenType){
+  static async createAvailability(start, end, daily, carParkId, token, tokenType){
     return new Promise((resolve, reject) => {
       const availability = {
-        start: start,
-        end: end,
+        start: start.getTime(),
+        end: end.getTime(),
         daily: daily,
         carParkId: carParkId
       };
       console.log(availability);
-      client.post('availability/create', JSON.stringify(availability), {
+      client.post('availabilities', JSON.stringify(availability), {
         headers: {
           'Authorization': tokenType + ' ' + token
         }
@@ -213,10 +229,7 @@ export class API {
    */
   static async searchavailabilities(carParkId, token, tokenType){
     return new Promise((resolve, reject) => {
-      const search = {
-        carParkId: carParkId
-      };
-      client.post('availability/search', JSON.stringify(search),{
+      client.get('carparks/' + carParkId + '/availabilities',{
         headers: {
           'Authorization': tokenType + ' ' + token
         }
@@ -235,13 +248,12 @@ export class API {
    * @param {string} tokenType
    * @return {Promise<Promise<any> | Promise>} - Return the server response
    */
-  static async deleteAvailability(availability, token, tokenType){
-    console.log(availability);
+  static async deleteAvailability(id, daily,  token, tokenType){
     return new Promise((resolve, reject) => {
       const objectToDelete = {
-        id: availability.id
+        daily: daily
       };
-      client.post('availability/destroy', JSON.stringify(objectToDelete),{
+      client.post('availabilities/' + id, JSON.stringify(objectToDelete),{
         headers: {
           'Authorization': tokenType + ' ' + token
         }

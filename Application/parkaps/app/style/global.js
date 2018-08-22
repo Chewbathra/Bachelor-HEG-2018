@@ -15,7 +15,8 @@ export const globalStyles = StyleSheet.create({
   },
   header: {
     width: WIDTH,
-    backgroundColor: '#000000'
+    backgroundColor: '#000000',
+    marginBottom: 10
   },
   icon: {
     color: '#FFF'

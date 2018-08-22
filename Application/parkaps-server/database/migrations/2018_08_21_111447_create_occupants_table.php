@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Carbon\Carbon;
 
-class CreateAvailabilitiesTable extends Migration
+class CreateOccupantsTable extends Migration
 {
     private $time;
 
@@ -17,14 +17,16 @@ class CreateAvailabilitiesTable extends Migration
     public function up()
     {
         $this->time =  Carbon::now()->toDateTimeString();
-        Schema::create('availabilities', function (Blueprint $table) {
+        Schema::create('occupants', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamp('start')->nullable(false)->default($this->time);
             $table->timestamp('end')->nullable(false)->default($this->time);
+            $table->unsignedInteger('user_id')->nullable(false);
             $table->unsignedInteger('car_park_id')->nullable(false);
-            $table->timestamps();
             $table->softDeletes();
+            $table->timestamps();
 
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('car_park_id')->references('id')->on('car_parks')->onDelete('cascade');
         });
     }
@@ -36,6 +38,6 @@ class CreateAvailabilitiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('availabilities');
+        Schema::dropIfExists('occupants');
     }
 }

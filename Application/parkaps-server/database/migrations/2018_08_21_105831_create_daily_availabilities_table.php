@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Carbon\Carbon;
 
-class CreateAvailabilitiesTable extends Migration
+class CreateDailyAvailabilitiesTable extends Migration
 {
     private $time;
 
@@ -17,7 +17,7 @@ class CreateAvailabilitiesTable extends Migration
     public function up()
     {
         $this->time =  Carbon::now()->toDateTimeString();
-        Schema::create('availabilities', function (Blueprint $table) {
+        Schema::create('daily_availabilities', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamp('start')->nullable(false)->default($this->time);
             $table->timestamp('end')->nullable(false)->default($this->time);
@@ -36,6 +36,6 @@ class CreateAvailabilitiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('availabilities');
+        Schema::dropIfExists('daily_availabilities');
     }
 }

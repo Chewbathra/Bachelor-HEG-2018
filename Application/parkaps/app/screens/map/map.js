@@ -179,6 +179,7 @@ export class MapScreen extends React.Component {
       this.setState({
         loading: true
       }, () => {
+        console.log(this.props.userStore.token, this.props.userStore.tokenType);
         API.searchCarPark(this.state.circle.center.latitude, this.state.circle.center.longitude, this.state.circle.radius, this.props.userStore.token, this.props.userStore.tokenType)
           .then(response => {
             if (response.data.results.length == 0) {

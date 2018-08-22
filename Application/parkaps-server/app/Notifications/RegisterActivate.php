@@ -40,7 +40,7 @@ class RegisterActivate extends Notification
      */
     public function toMail($notifiable)
     {
-        $url = url('/api/activate/'.$notifiable->activation_token);
+        $url = url('/api/users/activate/'.$notifiable->activation_token);
 
         return (new MailMessage)
             ->subject('Confirmation du compte Parkaps')

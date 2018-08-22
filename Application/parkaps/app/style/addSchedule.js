@@ -38,7 +38,7 @@ export const addScheduleStyles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     backgroundColor: '#F39C1D',
-    // opacity: 0.7,
+    opacity: 0.7,
   },
   addScheduleButtonText: {
     color: '#FFF',
@@ -56,8 +56,7 @@ export const addScheduleStyles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginRight: 10,
-    marginTop: 10,
-    marginBottom: 10
+    marginTop: 25,
   },
   itemText: {
     width: WIDTH / 100 * 60,
@@ -82,5 +81,58 @@ export const addScheduleStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     bottom: 0
+  },
+
+
+  modalBackground: {
+    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    backgroundColor: 'transparent'
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    height: HEIGHT / 100 * 60,
+    width: WIDTH / 100 * 90,
+    borderRadius: 10,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Roboto',
+    marginVertical: 10
+  },
+  input: {
+    width: WIDTH / 100 * 80,
+    marginVertical: 2,
+    // marginLeft: WIDTH / 100 * 5,
+    paddingLeft: 20,
+    // marginRight: 50,
+
+    backgroundColor: '#454F63',
+    borderBottomWidth : 0,
+    borderRadius: 15,
+  },
+  inputButton: {
+    borderRadius: 15,
+    marginTop: 2.5
+  },
+  sendButton:{
+    width:  WIDTH / 100 * 40,
+    marginTop: 30,
+    marginBottom: 15,
+    left: WIDTH /100 * 30,
+
+    flex: 1,
+    justifyContent: 'center',
+
+    borderColor: '#F0CC3D',
+    borderWidth: 1,
+    borderRadius: 10,
+
+    backgroundColor: '#F39C1D'
   }
 });

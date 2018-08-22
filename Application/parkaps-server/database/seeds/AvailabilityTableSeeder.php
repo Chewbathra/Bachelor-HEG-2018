@@ -16,7 +16,6 @@ class AvailabilityTableSeeder extends Seeder
         $availability = new \App\Availability([
             'start' => Carbon::now()->toDateTimeString(),
             'end' => Carbon::now()->addDay(1)->toDateTimeString(),
-            'daily' => false,
             'car_park_id' => 1
         ]);
         $availability->save();

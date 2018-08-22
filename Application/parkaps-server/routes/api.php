@@ -17,28 +17,48 @@ use Illuminate\Http\Request;
 //    return $request->user();
 //});
 
-Route::post('login', 'AuthController@login');
-Route::post('register', 'AuthController@register');
-Route::get('activate/{token}', 'AuthController@registerActivate');
+Route::post('users','UserController@create');
+//This route will change !
+Route::get('users/activate/{token}','UserController@activate');
+Route::post('login', 'UserController@login');
 
 Route::group([
     'middleware' => 'auth:api'
-], function () {
-    Route::get('logout', 'AuthController@logout');
-    Route::get('user', 'AuthController@user');
+], function() {
 
-    Route::group([
-        'prefix' => 'park',
-    ], function () {
-        Route::post('create', 'CarParkController@create');
-        Route::post('search', "CarParkController@search");
-    });
+   Route::get('logout', 'UserController@logout');
+   Route::get('user', 'UserController@get');
+   Route::put('user', 'UserController@modify');
+   Route::delete('user', 'UserController@delete');
+   Route::get('user/occupants', 'OccupantController@get');
+   Route::get('user/carparks','UserController@carparks');
 
-    Route::group([
-        'prefix' => 'availability',
-    ], function () {
-        Route::post('create', 'AvailabilityController@create');
-        Route::post('search', "AvailabilityController@search");
-        Route::post('destroy', "AvailabilityController@destroy");
-    });
+   Route::get('/token', 'UserController@testToken');
+
+   Route::group([
+       'prefix' => 'carparks'
+   ], function() {
+      Route::post('/', 'CarParkController@create');
+      Route::put('/{id}', 'CarParkController@modify');
+      Route::get('/{id}', 'CarParkController@get');
+      Route::delete('/{id}', 'CarParkController@delete');
+      Route::post('/search', 'CarParkController@search');
+
+      Route::get('/{id}/availabilities', 'AvailabilityController@get');
+   });
+
+   Route::group([
+       'prefix' => 'availabilities'
+   ], function() {
+      Route::post('/', 'AvailabilityController@create');
+      Route::put('/{id}', 'AvailabilityController@modify');
+      Route::post('/{id}', 'AvailabilityController@delete');
+   });
+
+   Route::group([
+       'prefix' => 'occupants'
+   ], function() {
+      Route::post('/', 'OccupantController@create');
+      Route::delete('/{id}', 'OccupantController@delete');
+   });
 });

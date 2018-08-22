@@ -10,7 +10,7 @@ export const addPlaceStyle = StyleSheet.create({
   },
   input: {
     width: WIDTH / 100 * 90,
-    marginVertical: 10,
+    marginVertical: 2,
     marginLeft: WIDTH / 100 * 5,
     paddingLeft: 20,
     // marginRight: 50,
@@ -18,6 +18,9 @@ export const addPlaceStyle = StyleSheet.create({
     backgroundColor: '#454F63',
     borderBottomWidth : 0,
     borderRadius: 15,
+  },
+  inputArea: {
+    width: WIDTH / 100 * 70
   },
   errorInput: {
     width: WIDTH / 100 * 90,

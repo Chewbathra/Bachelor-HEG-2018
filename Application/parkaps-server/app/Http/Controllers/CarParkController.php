@@ -20,7 +20,8 @@ class CarParkController extends Controller
         'price.required' => "Un prix est requis",
         'price.numeric' => "Le prix doit être un numérique",
         'address.required' => "Une adresse est requise",
-        'address.string' => "L'adresse doit être une chaine de caractère"
+        'address.string' => "L'adresse doit être une chaine de caractère",
+        'description.string' => "La description doit être une chaine de caractères"
     ];
 
 
@@ -100,7 +101,7 @@ class CarParkController extends Controller
 
         return response()->json([
             'results' => $carParks
-        ]);
+        ],200);
     }
 
     /**
@@ -138,6 +139,7 @@ class CarParkController extends Controller
         'address' => 'required|string',
         'picture' => 'string',
         'price' => 'required|numeric',
+        'description' => 'string'
         ], $this->messages);
 
         if($this->validateLatitude($request->latitude) == false){
@@ -164,6 +166,7 @@ class CarParkController extends Controller
             'address' => $request->address,
             'picture' => $request->picture,
             'price' => $request->price,
+            'description' => $request->description,
             'user_id' => $request->user()->id
         ]);
         $carPark->save();

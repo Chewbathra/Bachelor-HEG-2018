@@ -18,7 +18,6 @@ $factory->define(App\Availability::class, function (Faker $faker) {
     return [
         'start' => Carbon::now()->toDateTimeString(),
         'end' => Carbon::now()->addDay($faker->numberBetween(1,6))->addHours($faker->numberBetween(1,10))->toDateTimeString(),
-        'daily' => $faker->boolean,
         'car_park_id' => $faker->numberBetween(1,100)
     ];
 });
