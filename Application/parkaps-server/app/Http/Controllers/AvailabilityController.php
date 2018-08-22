@@ -8,6 +8,7 @@
 
 namespace App\Http\Controllers;
 
+use App\CarPark;
 use App\DailyAvailability;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -85,23 +86,29 @@ class AvailabilityController
      * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function delete($id, Request $request)
+    public function delete(Request $request)
     {
         $request->validate([
             'daily' => 'required|boolean'
         ]);
 
+        $id = $request->route('id');
+
         if($request->daily){
-            $availability = DailyAvailability::find($id);
-            if($availability->id == $request->user()->id){
-                $availability->delete();
+            $query = DB::table('daily_availabilities')->where('id', $id);
+            $availability = $query->first();
+            $carPark = CarPark::find($availability->car_park_id);
+            if($carPark->user_id == $request->user()->id){
+                $query->delete();
             } else {
                 return response('Forbidden', 403);
             }
         } else {
-            $availability = Availability::find($id);
-            if($availability->id == $request->user()->id){
-                $availability->delete();
+            $query = DB::table('availabilities')->where('id', $id);
+            $availability = $query->first();
+            $carPark = CarPark::find($availability->car_park_id);
+            if($carPark->user_id == $request->user()->id){
+                $query->delete();
             } else {
                 return response('Forbidden', 403);
             }
