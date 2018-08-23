@@ -128,7 +128,6 @@ export class LoginRegisterScreen extends React.Component {
     const email = this.refs['loginEmail']._root._lastNativeText;
     const password = this.refs['loginPassword']._root._lastNativeText;
     API.loginWithEmail(email, password, this.state.rememberMe).then(response => {
-      console.log(response);
       if(response.status == 200){
         // if(this.state.rememberMe){
         //   AsyncStorage.setItem('token',response.data.access_token);
@@ -185,10 +184,10 @@ export class LoginRegisterScreen extends React.Component {
           errors: response.data.errors || [{"other": "Pour une raison inconnue, la création de votre compte a échoué | " + response}]
         })
       }
-    }).catch(response => {
+    }).catch(error => {
       this.setState({
         loading: false,
-        errors: response.data.errors || [{"other": "Erreur inconnue | " + response}]
+        errors: r[{"other": "Erreur inconnue | " + JSON.stringify(error)}]
       })
     })
   }

@@ -100,6 +100,9 @@ export const addScheduleStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+  modalContainerDaily: {
+    height: HEIGHT / 100 * 50
+  },
   modalTitle: {
     fontSize: 20,
     fontFamily: 'Roboto',
@@ -134,5 +137,33 @@ export const addScheduleStyles = StyleSheet.create({
     borderRadius: 10,
 
     backgroundColor: '#F39C1D'
+  },
+
+  dailyItem: {
+    width: WIDTH,
+    height : 80,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    // justifyContent: 'center'
+  },
+  dailyItemText: {
+    marginLeft: 20,
+    fontSize: 20,
+    fontFamily: 'Roboto',
+    color: '#FFF'
+  },
+  dailyButton: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 50,
+    marginTop: 17
+  },
+  noDailyItems: {
+    fontSize: 15,
+    fontFamily: 'Roboto',
+    color: '#FFF',
+    textAlign:'center'
   }
 });

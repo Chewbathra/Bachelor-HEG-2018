@@ -61,8 +61,8 @@ class AvailabilityController
        $availability = null;
        if($request->daily){
            $availability = new DailyAvailability([
-               'start' => Carbon::createFromTimestampMs($request->start),
-               'end' =>  Carbon::createFromTimestampMs($request->end),
+               'start' => Carbon::createFromTimestampMs($request->start)->addHours(2),
+               'end' =>  Carbon::createFromTimestampMs($request->end)->addHours(2),
                'car_park_id' => $request->carParkId
            ]);
        } else {
@@ -72,6 +72,7 @@ class AvailabilityController
                'car_park_id' => $request->carParkId
            ]);
        }
+       info('salut');
        $availability->save();
 
         return response()->json([

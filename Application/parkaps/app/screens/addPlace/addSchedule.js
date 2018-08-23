@@ -1,5 +1,5 @@
 import React from "react";
-import {View, ToastAndroid, DatePickerAndroid, TimePickerAndroid, Alert, Modal} from "react-native";
+import {View, ToastAndroid, DatePickerAndroid, TimePickerAndroid, Alert, Modal, FlatList} from "react-native";
 import {inject} from 'mobx-react';
 import {API} from '../../config/provider';
 import { LocaleConfig, Agenda } from 'react-native-calendars';
@@ -25,6 +25,7 @@ export class AddScheduleScreen extends React.Component {
       }),
 
       items: {},
+      dailyItems: [],
       markedDates: {},
       dates: [],
 
@@ -57,33 +58,47 @@ export class AddScheduleScreen extends React.Component {
    */
   fetchAvailabilities(){
     this.setState({
-      loading: true
+      loading: true,
+      items: {},
+      dailyItems: [],
+      markedDates: {},
+      dates: []
     }, () => {
       API.searchavailabilities(this.state.carPark.id, this.props.userStore.token, this.props.userStore.tokenType)
         .then(async response => {
-          console.log(response);
           if(response.status == 200){
             const availabilites = response.data.availabilities;
-            const dailyAvailabilities = response.data.daily_availabilities;
+            this.state.dailyItems = response.data.daily_availabilities;
+            let stateDates = this.state.dates;
             await this.asyncForEach(availabilites, async (availability) => {
               const start = new Date(availability.start);
               const end = new Date(availability.end);
               const dates = this.getDatesBetween(start, end);
-              let stateDates = this.state.dates;
               stateDates.push({start: start, end: end});
               await this.saveDatesToItems(dates, start, end, availability.id)
             })
             this.setState({
-              loading: false
+              loading: false,
+              dates: stateDates
             })
           } else {
-
+            Alert.alert(
+              'Erreur',
+              "Les horaires de cette places n'ont pas pu être récupérés"
+            )
+            this.setState({
+              loading: false
+            })
           }
         }).catch(error => {
         console.log(error);
         this.setState({
           loading: false
         })
+        Alert.alert(
+          'Erreur',
+          "Erreur inconnue |" + JSON.stringify(error)
+        )
       })
     })
   }
@@ -120,7 +135,114 @@ export class AddScheduleScreen extends React.Component {
    */
   saveSchedule(){
     if(this.state.dailyOpen){
+      if(this.state.startTime.getTime() >= this.state.endTime.getTime()){
+        Alert.alert(
+          'Erreur',
+          "L'heure de fin doit être après l'heure de début"
+        )
+      } else {
+        this.setState({
+          scheduleSelectorVisible: false,
+          loading: true
+        }, () => {
+          let start = new Date();
+          let end = new Date();
+          console.log(this.state.startTime);
+          start.setHours(this.state.startTime.getHours());
+          start.setMinutes(this.state.startTime.getMinutes());
+          end.setHours(this.state.endTime.getHours());
+          end.setMinutes(this.state.endTime.getMinutes());
+          let errors = false;
+          this.state.dailyItems.forEach(dailyItem => {
+            const startHour = start.getHours();
+            const startMinute = start.getMinutes();
+            const endHour = end.getHours();
+            const endMinutes = end.getMinutes();
+            const dateStart = new Date(dailyItem.start);
+            const dateEnd = new Date(dailyItem.end);
 
+            if(startHour < dateStart.getHours()){
+              if(endHour > dateStart.getHours()){
+                errors = true
+              } else if(endHour === dateStart.getHours() && endMinutes >= dateStart.getMinutes()){
+                errors = true;
+              }
+            } else if(startHour === dateStart.getHours()){
+              if(startMinute < dateStart.getMinutes()){
+                if(endHour > dateStart.getHours()){
+                  errors = true
+                } else if(endHour === dateStart.getHours() && endMinutes >= dateStart.getMinutes()){
+                  errors = true;
+                }
+              } else if(startMinute === dateStart.getMinutes()) {
+                errors = true;
+              } else if(startMinute > dateStart.getMinutes()){
+                if(endHour === dateEnd.getHours() && endMinutes <= dateEnd.getMinutes()){
+                  errors = true;
+                }
+              }
+            } else if(startHour > dateStart.getHours() && startHour < dateEnd.getHours()){
+              errors = true;
+            } else if(startHour === dateEnd.getHours()){
+              if(startMinute < dateEnd.getMinutes()){
+                errors = true;
+              }
+            }
+          });
+          if(errors){
+            Alert.alert(
+              'Erreur',
+              "L'horaire que vous essayez de créer est compris dans un horaire déjà existant."
+            )
+            this.setState({
+              loading: false,
+            })
+          } else {
+            API.createAvailability(start, end, this.state.dailyOpen,this.state.carPark.id, this.props.userStore.token, this.props.userStore.tokenType).then(response => {
+              if(response.status === 201) {
+                this.fetchAvailabilities();
+                this.setState({
+                  loading: false,
+                  dailyOpen: true
+                });
+                // let dailyItems = this.state.dailyItems;
+                // console.log(response.data);
+                // dailyItems.push({
+                //   id: response.data.availability.id,
+                //   start: new Date(response.data.availability.start),
+                //   end: new Date(response.data.availability.end)
+                // });
+                // this.setState({
+                //   loading: false,
+                //   startDate: null,
+                //   endDate: null,
+                //   startTime: null,
+                //   endTime: null,
+                //   dailyItems: dailyItems
+                // });
+                ToastAndroid.show('Votre horaire a correctement été enregistré', ToastAndroid.SHORT);
+              } else {
+                Alert.alert(
+                  'Erreur',
+                  "Votre horaire n'a pas pu être correctement enregistré"
+                )
+                this.setState({
+                  loading: false
+                })
+              }
+            }).catch(error => {
+              console.log(error);
+              this.setState({
+                loading: false
+              });
+              Alert.alert(
+                'Erreur',
+                "Erreur inconnue |" + JSON.stringify(error)
+              )
+            })
+          }
+        })
+      }
     } else {
       if (this.state.startDate > this.state.endDate) {
         Alert.alert(
@@ -166,7 +288,6 @@ export class AddScheduleScreen extends React.Component {
             })
           } else {
             API.createAvailability(start, end, this.state.dailyOpen,this.state.carPark.id, this.props.userStore.token, this.props.userStore.tokenType).then(response => {
-              console.log(response);
               if(response.status === 201) {
                 const dates = this.getDatesBetween(start, end);
                 let stateDates = this.state.dates;
@@ -187,6 +308,9 @@ export class AddScheduleScreen extends React.Component {
                   'Erreur',
                   "Votre horaire n'a pas pu être correctement enregistré"
                 )
+                this.setState({
+                  loading: false
+                })
               }
             }).catch(error => {
               console.log(error);
@@ -337,7 +461,7 @@ export class AddScheduleScreen extends React.Component {
    * @param {number} availabilityId - Id of this availability
    * @return {Promise<any> | Promise}
    */
-  saveDatesToItems(dates, start, end, availabilityId = 0){
+  saveDatesToItems(dates, start, end, availabilityId){
     return new Promise((resolve) => {
       let name = "Du " + start.toLocaleString() + " au " + end.toLocaleString();
       let newItems = this.state.items;
@@ -354,13 +478,9 @@ export class AddScheduleScreen extends React.Component {
           newItems[date] = [item]
         }
       });
-      console.log(start.toDateString(), end.toDateString());
-      console.log(newMarkedDates[start.toISOString().split('T')[0]] == null);
       if(start.toDateString() === end.toDateString() && newMarkedDates[start.toISOString().split('T')[0]] == null){
-        console.log('egal');
           newMarkedDates[start.toISOString().split('T')[0]] = {color: '#c97852', startingDay: true, endingDay: true}
       } else if(start.toDateString() !== end.toDateString()) {
-        console.log('non egal');
         if (newMarkedDates[start.toISOString().split('T')[0]] == null) {
           newMarkedDates[start.toISOString().split('T')[0]] = {color: '#c97852', startingDay: true}
         } else {
@@ -388,37 +508,39 @@ export class AddScheduleScreen extends React.Component {
    * @param availability
    */
   deleteAvailability(availability){
-    API.deleteAvailability(availability.id, this.state.dailyOpen, this.props.userStore.token, this.props.userStore.tokenType)
-      .then(response => {
-        console.log(response);
-        // let items = this.state.items;
-        // const itemKeys = Object.keys(items);
-        // itemKeys.forEach(key => {
-        //  for(let i = items[key].length - 1; i >= 0; i--){
-        //    if(items[key][i].id === availability.id){
-        //      items[key].splice(i,1);
-        //    }
-        //  }
-        // });
-        //
-        // let dailyItems = this.state.dailyItems;
-        // for(let i = dailyItems.length - 1; i >= 0; i--){
-        //   if(dailyItems[i].id === availability.id){
-        //     dailyItems.splice(i,1);
-        //   }
-        // }
-        // this.setState({
-        //   items: items,
-        //   dailyItems: dailyItems
-        // }, () => {
-        //   ToastAndroid.showWithGravity(
-        //     'Horaire supprimé correctement',
-        //     ToastAndroid.SHORT,
-        //     ToastAndroid.CENTER
-        //   );
-        // });
-      }).catch((error) => {
-        console.log(error);
+    this.setState({
+      loading: true
+    }, () => {
+      API.deleteAvailability(availability.id, this.state.dailyOpen, this.props.userStore.token, this.props.userStore.tokenType)
+        .then(response => {
+          if(response.status == 200){
+            if(this.state.dailyOpen){
+              const dailyItems = this.state.dailyItems;
+              for(let i = dailyItems.length - 1; i >= 0; i--){
+                if(dailyItems[i].id === availability.id){
+                  dailyItems.splice(i,1);
+                }
+              }
+              this.setState({
+                dailyItems: dailyItems,
+                loading: false
+              })
+            } else {
+              this.fetchAvailabilities();
+            }
+          } else {
+            Alert.alert(
+              'Erreur',
+              "Votre horaire n'a pas pu être supprimé. Veuillez recommencer"
+            )
+          }
+        }).catch((error) => {
+          console.log(error);
+          Alert.alert(
+            "Erreur",
+            "Erreur inconnue | " + JSON.stringify(error)
+          )
+      })
     })
   }
 
@@ -451,6 +573,25 @@ export class AddScheduleScreen extends React.Component {
     );
   }
 
+  renderDailyItem(dailyItem){
+    console.log(dailyItem);
+    const item = dailyItem['item'];
+    const start = new Date(item.start);
+    const end = new Date(item.end);
+    return (
+      <View style={addScheduleStyles.dailyItem} key={item.id}>
+        <Text style={addScheduleStyles.dailyItemText} key={'text' + item.id}>
+          {start.toLocaleTimeString().slice(0, -3)} à {end.toLocaleTimeString().slice(0, -3)}
+        </Text>
+        <Button bordered danger rounded style={addScheduleStyles.dailyButton}
+                key={'button' + item.id}
+                onPress={() => this.deleteAvailability(item)}>
+          <Icon name="trash" style={{color: 'red'}} key={'icon' + item.id}/>
+        </Button>
+      </View>
+    );
+  }
+
   renderEmptyDate() {
     return (
       <View style={addScheduleStyles.emptyDate}><Text style={addScheduleStyles.emptyDateText}>Aucun horaire pour cette journée</Text></View>
@@ -470,7 +611,13 @@ export class AddScheduleScreen extends React.Component {
   }
 
   render() {
-    const dailyAgenda = null;
+    const dailyAgenda =
+      <FlatList
+        extraData={this.state}
+        data={this.state.dailyItems}
+        ListEmptyComponent={<Text style={addScheduleStyles.noDailyItems}>Aucun horaires journaliers</Text>}
+        renderItem={(item) => this.renderDailyItem(item)}
+      />;
     const agenda =
       <Agenda
         style={addScheduleStyles.calendar}
@@ -516,7 +663,27 @@ export class AddScheduleScreen extends React.Component {
         }}
       />
 
-    const dailyForm = null;
+    const dailyForm =
+      <Form >
+        <Item style={addScheduleStyles.input}>
+          <Icon name='clock' style={globalStyles.icon}/>
+          <Input placeholder="Heure de début" placeholderTextColor="#959DAD" ref="start" editable={false}
+                 value={this.state.startTime == null ? '' : this.state.startTime.getHours() + ':' + this.state.startTime.getMinutes()}/>
+          <Button warning style={addScheduleStyles.inputButton}
+                  onPress={() => this.setStartTime()}>
+            <Icon name='create' />
+          </Button>
+        </Item>
+        <Item style={addScheduleStyles.input}>
+          <Icon name='clock' style={globalStyles.icon}/>
+          <Input placeholder="Heure de fin" placeholderTextColor="#959DAD" ref="start" editable={false}
+                 value={this.state.endTime == null ? '' : this.state.endTime.getHours() + ':' + this.state.endTime.getMinutes()}/>
+          <Button warning style={addScheduleStyles.inputButton}
+                  onPress={() => this.setEndTime()}>
+            <Icon name='create' />
+          </Button>
+        </Item>
+      </Form>;
     const form =
       <Form >
         <Item style={addScheduleStyles.input}>
@@ -598,11 +765,11 @@ export class AddScheduleScreen extends React.Component {
           transparent={true}
           animationType={'fade'}
           onRequestClose={() => {}}
-          visible={!!this.state.scheduleSelectorVisible}>
+          visible={this.state.scheduleSelectorVisible}>
           <View style={addScheduleStyles.modalBackground}>
-            <View style={addScheduleStyles.modalContainer}>
+            <View style={[addScheduleStyles.modalContainer, this.state.dailyOpen ? addScheduleStyles.modalContainerDaily : null]}>
               <Text style={addScheduleStyles.modalTitle}>Création d'un horaire {this.state.dailyOpen ? 'journalier' : 'normal'}</Text>
-              {form}
+              {this.state.dailyOpen ? dailyForm : form}
               <Button
                 onPress={() => this.saveSchedule()}
                 style={addScheduleStyles.sendButton}>

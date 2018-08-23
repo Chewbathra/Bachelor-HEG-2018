@@ -18,6 +18,6 @@ class Availability extends Model
      * @var array
      */
     protected $fillable = [
-        'start', 'end', 'daily', 'car_park_id',
+        'start', 'end', 'car_park_id',
     ];
 }

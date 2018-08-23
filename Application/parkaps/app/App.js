@@ -18,7 +18,8 @@ import SplashScreen from 'react-native-splash-screen';
 
 YellowBox.ignoreWarnings([
   "Warning: isMounted(...) is deprecated in plain JavaScript React classes. Instead, make sure to clean up subscriptions and pending requests in componentWillUnmount to prevent memory leaks.",
-  "Remote"
+  "Remote",
+  "VirtualizedList: missing keys for items"
 ]);
 
 const {StatusBarManager } = NativeModules;
@@ -58,7 +59,6 @@ export default class App extends React.Component {
   }
 
   handleFirstConnectivityChange(connectionInfo) {
-    console.log(connectionInfo);
     if(connectionInfo.type === 'none'){
       Alert.alert(
         'Connexion internet',

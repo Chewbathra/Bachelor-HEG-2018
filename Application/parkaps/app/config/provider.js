@@ -113,7 +113,6 @@ export class API {
         price: price,
         description: description
       };
-      console.log(carPark);
       client.post('carparks', JSON.stringify(carPark), {
         headers: {
           'Authorization': tokenType + ' ' + token
@@ -142,7 +141,6 @@ export class API {
         longitude: longitude,
         radius: radius
       };
-      console.log(search, token, tokenType);
       client.post('carparks/search',JSON.stringify(search),{
         headers: {
           'Authorization': tokenType + ' ' + token
@@ -200,6 +198,7 @@ export class API {
    * @return {Promise<Promise<any> | Promise>} - Return the server response
    */
   static async createAvailability(start, end, daily, carParkId, token, tokenType){
+    console.log(start, end, daily);
     return new Promise((resolve, reject) => {
       const availability = {
         start: start.getTime(),

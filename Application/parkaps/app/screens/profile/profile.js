@@ -30,7 +30,6 @@ export class ProfileScreen extends React.Component {
 
   async fetchUser(){
     API.getUserInfos(this.props.userStore.token, this.props.userStore.tokenType).then(response => {
-      console.log(response);
       if(response.status === 200){
         this.setState({
           user: response.data.user,

@@ -54,7 +54,7 @@ class UserController extends Controller
         $user->save();
         $user->notify(new RegisterActivate($user));
 
-        return response("user created",201);
+        return response("Created",201);
 
 //        return response()->json([
 //            'user' => $user
