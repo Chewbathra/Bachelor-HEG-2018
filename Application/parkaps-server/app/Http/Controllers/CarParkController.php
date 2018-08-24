@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Availability;
 use App\CarPark;
+use App\DailyAvailability;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,7 +23,8 @@ class CarParkController extends Controller
         'price.numeric' => "Le prix doit être un numérique",
         'address.required' => "Une adresse est requise",
         'address.string' => "L'adresse doit être une chaine de caractère",
-        'description.string' => "La description doit être une chaine de caractères"
+        'description.string' => "La description doit être une chaine de caractères",
+        'description.max' => "La description ne doit pas dépasser 190 caractères"
     ];
 
 
@@ -33,71 +36,17 @@ class CarParkController extends Controller
             'radius' => 'required|numeric',
         ], $this->messages);
 
-//        if($this->validateLatitude($request->latitude) == false){
-//            return response()->json([
-//                'message' => "The given data was invalid",
-//                'errors' => [
-//                    'latitude' => $this->messages['latitude.valide']
-//                ]
-//            ], 422);
-//        }
-//
-//        if($this->validateLongitude($request->longitude) == false){
-//            return response()->json([
-//                'message' => "The given data was invalid",
-//                'errors' => [
-//                    'longitude' => $this->messages['longitude.valide']
-//                ]
-//            ], 422);
-//        }
-
         $radius = $request->radius;
 
-        //FIRST TRY TO DO GEO LOCATION QUERY WITH ELASTICSEARCH
-        //NOT USED NOW
-//        $jsonSearch = '{
-//            "query": {
-//                "bool" : {
-//                    "must" : {
-//                        "match_all" : {}
-//                    },
-//                    "filter" : {
-//                        "geo_distance" : {
-//                            "distance" : "'. $radius .'km",
-//                            "location": {
-//                              "lat": ' . $request->latitude . ',
-//                              "lon": ' . $request->longitude .'
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }';
-//        $params = [
-//            'index' => 'parkaps',
-//            'type' => 'car_parks',
-//            'body' => $jsonSearch
-//        ];
-//        $results = \Elasticsearch::search($params);
-//
-//        $hits = $results['hits']['hits'];
-//        $ids = [];
-//        foreach ($hits as $hit){
-//            $ids[] = intval($hit["_id"]);
-//        }
-//
-//        $carParks = CarPark::find($ids);
-
-        //CHANGED TO A MYSQL QUERY
         $carParks = DB::select("SELECT *,(((acos(sin((".$request->latitude."*pi()/180)) * 
             sin((`Latitude`*pi()/180))+cos((".$request->latitude."*pi()/180)) * 
             cos((`Latitude`*pi()/180)) * cos(((".$request->longitude."- `Longitude`)* 
             pi()/180))))*180/pi())*(60*1.1515*1609.344)
         ) as distance 
-        FROM `car_parks` 
+        FROM `car_parks`
+        WHERE 'deleted_at' = NULL
         HAVING distance <= ".$radius.";"
         );
-
 
         return response()->json([
             'results' => $carParks
@@ -139,7 +88,7 @@ class CarParkController extends Controller
         'address' => 'required|string',
         'picture' => 'string',
         'price' => 'required|numeric',
-        'description' => 'string'
+        'description' => 'string|max:190'
         ], $this->messages);
 
         if($this->validateLatitude($request->latitude) == false){
@@ -171,21 +120,6 @@ class CarParkController extends Controller
         ]);
         $carPark->save();
 
-        //INDEX TO ELASTICSEARCH
-        //NOT USED NOW
-//        $params = [
-//            'index' => 'parkaps',
-//            'type' => 'car_parks' ,
-//            'id' => $carPark->id,
-//            'body' => [
-//                'location' => [
-//                    'lat' => floatval($request->latitude),
-//                    'lon' => floatval($request->longitude)
-//                ]
-//            ]
-//        ];
-//        \Elasticsearch::index($params);
-
         return response()->json([
             'created' => $carPark,
         ], 201);
@@ -205,33 +139,70 @@ class CarParkController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\CarPark  $carPark
+     * @param $id
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, CarPark $carPark)
+    public function modify($id, Request $request)
     {
-        //
+        $request->validate([
+            'latitude' => 'required|string',
+            'longitude' => 'required|string',
+            'address' => 'required|string',
+            'picture' => 'string',
+            'price' => 'required|numeric',
+            'description' => 'string|max:190'
+        ], $this->messages);
+
+        if($this->validateLatitude($request->latitude) == false){
+            return response()->json([
+                'message' => "The given data was invalid",
+                'errors' => [
+                    'latitude' => $this->messages['latitude.valide']
+                ]
+            ], 422);
+        }
+
+        if($this->validateLongitude($request->longitude) == false){
+            return response()->json([
+                'message' => "The given data was invalid",
+                'errors' => [
+                    'longitude' => $this->messages['longitude.valide']
+                ]
+            ], 422);
+        }
+
+        $carPark = CarPark::find($id);
+        $carPark->latitude = $request->latitude;
+        $carPark->longitude = $request->longitude;
+        $carPark->address = $request->address;
+        $carPark->picture = $request->picture;
+        $carPark->price = $request->price;
+        $carPark->description = $request->description;
+        $carPark->save();
+
+        return response('Updated',201);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\CarPark  $carPark
+     * @param $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(CarPark $carPark)
+    public function delete($id)
     {
-        //NOT USED NOW
-//        $params = [
-//            'index' => 'parkaps',
-//            'type' => 'car_parks' ,
-//            'id' => $carPark->id,
-//
-//        ];
-//        \Elasticsearch::delete($params);
-
+        $carPark = CarPark::find($id);
+        $availabilities = Availability::where('car_park_id', $carPark->id)->get();
+        foreach ($availabilities as $availability){
+            $availability->delete();
+        }
+        $dailyAvailabilities = DailyAvailability::where('car_park_id', $carPark->id)->get();
+        foreach ($dailyAvailabilities as $dailyAvailability){
+            $dailyAvailability->delete();
+        }
         $carPark->delete();
 
+        return response('Deleted', 201);
     }
 }

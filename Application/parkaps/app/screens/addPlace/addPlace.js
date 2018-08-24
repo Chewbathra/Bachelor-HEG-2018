@@ -18,8 +18,75 @@ export class AddPlaceScreen extends React.Component {
       loading: false,
       errors: [],
       latitude: null,
-      longitude: null
+      longitude: null,
+      carPark: this.props.navigation.getParam('carPark', {})
     }
+  }
+
+  componentDidMount(){
+    if(this.state.carPark != null){
+      const carPark = this.state.carPark;
+      this.setState({
+        latitude: carPark.latitude,
+        longitude: carPark.longitude
+      })
+      this.refs['latitude']._root._lastNativeText = carPark.latitude;
+      this.refs['longitude']._root._lastNativeText = carPark.longitude;
+      this.refs['price']._root._lastNativeText = carPark.price;
+      this.refs['address']._root._lastNativeText = carPark.address;
+      this.refs['description']._root._lastNativeText = carPark.description;
+    }
+  }
+
+  goToProfile(){
+    if(this.state.carPark.id != null){
+      this.props.navigation.navigate("Profile");
+      this.props.navigation.getParam('update')();
+    } else {
+      this.props.navigation.navigate("Profile");
+    }
+  }
+
+  openSchedule(){
+    this.props.navigation.navigate('AddSchedule', {
+      carPark: this.state.carPark,
+      update: this.props.navigation.getParam('update')
+    });
+  }
+
+  deleteCarPark(){
+    this.setState({
+      loading: true
+    }, () => {
+      API.deleteCarPark(this.state.carPark.id, this.props.userStore.token, this.props.userStore.tokenType)
+        .then(response => {
+          if(response.status === 201){
+            ToastAndroid.show("La place de parking a bien été supprimée", ToastAndroid.SHORT);
+            this.setState({
+              loading: false
+            })
+            this.goToProfile();
+          } else {
+            Alert.alert(
+              'Erreur',
+              "Erreur inconnue | " + JSON.stringify(error)
+            );
+            this.setState({
+              loading: false
+            })
+          }
+        }).catch(error => {
+          console.log(error);
+          Alert.alert(
+            'Erreur',
+            "Erreur inconnue | " + JSON.stringify(error)
+          )
+          this.setState({
+            loading: false
+          })
+       })
+
+    })
   }
 
   async getCurrentPosition(){
@@ -107,20 +174,17 @@ export class AddPlaceScreen extends React.Component {
   }
 
   async saveCarPark(){
-    // this.props.navigation.navigate('AddSchedule', {update: this.props.navigation.getParam('update')});
-    this.setState({
-      loading: true
-    }, () => {
+    if(this.state.carPark.id != null){
       const latitude = this.refs['latitude']._root._lastNativeText;
       const longitude = this.refs['longitude']._root._lastNativeText;
       const price = this.refs['price']._root._lastNativeText;
       const address = this.refs['address']._root._lastNativeText;
       const description = this.refs['description']._root._lastNativeText;
-      API.createCarPark(latitude, longitude, address, 'ceci est une image', price, description, this.props.userStore.token, this.props.userStore.tokenType)
+      API.modifyCarPark(this.state.carPark.id, latitude, longitude, address, 'picture', price, description, this.props.userStore.token, this.props.userStore.tokenType)
         .then(response => {
-          if(response.status == 201){
+          if(response.status === 201){
             ToastAndroid.showWithGravity(
-              "Votre place de parking a correctement été créée",
+              "Votre place de parking a correctement été modifiée",
               ToastAndroid.LONG,
               ToastAndroid.CENTER
             );
@@ -128,22 +192,77 @@ export class AddPlaceScreen extends React.Component {
               loading: false,
               errors: [],
             });
-            this.props.navigation.navigate('AddSchedule', {carPark: response.data.created, update: this.props.navigation.getParam('update')});
           } else {
             this.setState({
               loading: false,
               errors: response.data.errors
             })
           }
-        })
-        .catch(error => {
+        }).catch(error => {
           console.log(error);
           this.setState({
             loading: false,
             errors: error.data.errors
           });
-        });
-    });
+        })
+    } else {
+      this.setState({
+        loading: true
+      }, () => {
+        const latitude = this.refs['latitude']._root._lastNativeText;
+        const longitude = this.refs['longitude']._root._lastNativeText;
+        const price = this.refs['price']._root._lastNativeText;
+        const address = this.refs['address']._root._lastNativeText;
+        const description = this.refs['description']._root._lastNativeText;
+        API.createCarPark(latitude, longitude, address, 'picture', price, description, this.props.userStore.token, this.props.userStore.tokenType)
+          .then(response => {
+            if (response.status == 201) {
+              ToastAndroid.showWithGravity(
+                "Votre place de parking a correctement été créée",
+                ToastAndroid.LONG,
+                ToastAndroid.CENTER
+              );
+              this.setState({
+                loading: false,
+                errors: [],
+              });
+              this.props.navigation.navigate('AddSchedule', {
+                carPark: response.data.created,
+                update: this.props.navigation.getParam('update')
+              });
+            } else {
+              this.setState({
+                loading: false,
+                errors: response.data.errors
+              })
+            }
+          })
+          .catch(error => {
+            console.log(error);
+            this.setState({
+              loading: false,
+              errors: error.data.errors
+            });
+          });
+      });
+    }
+  }
+
+  renderModifyButton(){
+    return (
+      <View>
+        <Button
+          style={[addPlaceStyle.sendButton, {marginTop: 5}]}
+          onPress={() => this.openSchedule()}>
+          <Text style={globalStyles.buttonText}>Modifier les horaires</Text>
+        </Button>
+        <Button
+          style={[addPlaceStyle.sendButton, {marginTop: 5}]}
+          onPress={() => this.deleteCarPark()}>
+          <Text style={globalStyles.buttonText}>Supprimer</Text>
+        </Button>
+      </View>
+    )
   }
 
   render() {
@@ -152,8 +271,7 @@ export class AddPlaceScreen extends React.Component {
         <Header style={globalStyles.header} androidStatusBarColor='#000000'>
           <Left>
             <Button transparent
-              onPress={() => {this.props.navigation.goBack()
-              }}>
+              onPress={() => this.goToProfile()}>
               <Icon name="arrow-back"/>
             </Button>
           </Left>
@@ -186,12 +304,12 @@ export class AddPlaceScreen extends React.Component {
             </Button>
             <Item style={this.state.errors["address"] == null ? addPlaceStyle.input : addPlaceStyle.errorInput}>
               <Icon name='key' style={globalStyles.icon}/>
-              <Input placeholder="Adresse" placeholderTextColor="#959DAD" ref="address"/>
+              <Input placeholder="Adresse" placeholderTextColor="#959DAD" ref="address" defaultValue={this.state.carPark.address}/>
             </Item>
             <Text style={addPlaceStyle.inputError}>{this.state.errors["address"] == null ? '' : this.state.errors["address"]}</Text>
             <Item style={this.state.errors["price"] == null ? addPlaceStyle.input : addPlaceStyle.errorInput}>
               <Icon name='cash' style={globalStyles.icon}/>
-              <Input placeholder="Prix par heure" placeholderTextColor="#959DAD" ref="price" keyboardType={"phone-pad"}/>
+              <Input placeholder="Prix par heure" placeholderTextColor="#959DAD" ref="price" keyboardType={"phone-pad"} defaultValue={this.state.carPark.price}/>
             </Item>
             <Text style={addPlaceStyle.inputError}>{this.state.errors["price"] == null ? '' : this.state.errors["price"]}</Text>
             {/*<Button bordered rounded style={addPlaceStyle.middleButton}*/}
@@ -200,15 +318,16 @@ export class AddPlaceScreen extends React.Component {
             {/*</Button>*/}
             <Item style={this.state.errors["description"] == null ? addPlaceStyle.input : addPlaceStyle.errorInput}>
               <Icon name='book' style={globalStyles.icon}/>
-              <Input placeholder="Description" placeholderTextColor="#959DAD" ref="description" multiline={true} numberOfLines={4} />
+              <Input placeholder="Description" placeholderTextColor="#959DAD" ref="description" multiline={true} numberOfLines={4} defaultValue={this.state.carPark.description} />
             </Item>
             <Text style={addPlaceStyle.inputError}>{this.state.errors["description"] == null ? '' : this.state.errors["description"]}</Text>
           </Form>
           <Button
             onPress={() => this.saveCarPark()}
             style={addPlaceStyle.sendButton}>
-            <Text style={globalStyles.buttonText}>Enregistrer</Text>
+            <Text style={globalStyles.buttonText}>{this.state.carPark.id != null ? 'Modifier' : 'Enregistrer'}</Text>
           </Button>
+          {this.state.carPark.id != null ? this.renderModifyButton() : null}
         </KeyboardAwareScrollView>
         <Loader
           text="Enregistrement"

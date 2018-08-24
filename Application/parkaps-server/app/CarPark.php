@@ -17,6 +17,6 @@ class CarPark extends Model
      * @var array
      */
     protected $fillable = [
-        'latitude', 'longitude', 'address', 'picture', 'price', 'user_id',
+        'latitude', 'longitude', 'address', 'picture', 'price', 'description', 'user_id',
     ];
 }

@@ -99,6 +99,7 @@ export class API {
    * @param {string} address
    * @param {string} picture
    * @param {number} price
+   * @param description
    * @param {string} token
    * @param {string} tokenType
    * @return {Promise<Promise<any> | Promise>} - Return the server response
@@ -123,6 +124,65 @@ export class API {
         reject(error.response);
       })
     });
+  }
+
+  /**
+   * Modify a car park
+   * @param id
+   * @param latitude
+   * @param longitude
+   * @param address
+   * @param picture
+   * @param price
+   * @param description
+   * @param token
+   * @param tokenType
+   * @return {Promise<Promise<any> | Promise>}
+   */
+  static async modifyCarPark(id, latitude, longitude, address, picture, price, description, token, tokenType){
+    return new Promise((resolve, reject) => {
+      const carPark = {
+        latitude: latitude,
+        longitude: longitude,
+        address: address,
+        picture: picture,
+        price: price,
+        description: description
+      };
+      client.put('carparks/' + id, JSON.stringify(carPark), {
+        headers: {
+          'Authorization': tokenType + ' ' + token
+        }
+      }).then(response => {
+        resolve(response);
+      }).catch(error => {
+        reject(error.response);
+      })
+    });
+  }
+
+  /**
+   * Delete a car park
+   * @param id
+   * @param token
+   * @param tokenType
+   * @return {Promise<Promise<any> | Promise>}
+   */
+  static async deleteCarPark(id, token, tokenType){
+    return new Promise((resolve, reject) => {
+      client.delete('carparks/' + id,{
+        headers: {
+          'Authorization': tokenType + ' ' + token
+        }
+      })
+        .then(response => {
+          console.log(response);
+          resolve(response);
+        }).catch(error => {
+          console.log(error);
+        reject(error.response);
+      })
+    })
   }
 
   /**
@@ -173,6 +233,12 @@ export class API {
     })
   }
 
+  /**
+   * Return all car parks of the connected user
+   * @param token
+   * @param tokenType
+   * @return {Promise<Promise<any> | Promise>}
+   */
   static async getUserCarParks(token, tokenType){
     return new Promise((resolve, reject) => {
       client.get('user/carparks',{
@@ -180,8 +246,10 @@ export class API {
           'Authorization': tokenType + ' ' + token
         }
       }).then(response => {
+        console.log(response);
         resolve(response);
       }).catch(error => {
+        console.log(error);
         reject(error.response);
       })
     })
@@ -198,7 +266,6 @@ export class API {
    * @return {Promise<Promise<any> | Promise>} - Return the server response
    */
   static async createAvailability(start, end, daily, carParkId, token, tokenType){
-    console.log(start, end, daily);
     return new Promise((resolve, reject) => {
       const availability = {
         start: start.getTime(),
@@ -206,7 +273,6 @@ export class API {
         daily: daily,
         carParkId: carParkId
       };
-      console.log(availability);
       client.post('availabilities', JSON.stringify(availability), {
         headers: {
           'Authorization': tokenType + ' ' + token

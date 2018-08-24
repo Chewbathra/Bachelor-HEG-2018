@@ -2,11 +2,9 @@ import React from 'react';
 import {
   StyleSheet,
   Dimensions,
-  Image,
-  View
 } from 'react-native';
 
-import {Card, Button, Icon, CardItem, Left, Thumbnail, Body, Text} from 'native-base';
+import {Card, Button, Icon, CardItem, Left, Thumbnail, Body, Text, List, ListItem} from 'native-base';
 
 import {globalStyles} from "../style";
 
@@ -34,26 +32,23 @@ export class PlaceCard extends React.Component{
           <Left>
             <Thumbnail source={{uri: 'https://picsum.photos/200'}}/>
             <Body>
-              <Text>Place de parking</Text>
-              <Text note>{carPark.address}</Text>
+              <Text>{carPark.address}</Text>
+              <Text note>{carPark.latitude} | {carPark.longitude}</Text>
             </Body>
+            <Icon name="build" style={globalStyles.icon}/>
           </Left>
-        </CardItem>
-        <CardItem button style={styles.cardItem} onPress={() => this.showDetails()}>
-          <Body>
-          <Image source={{uri: 'https://picsum.photos/100/300'}} style={{height: 100, width: 300, flex: 1}}/>
-          <Text>
-            {carPark.latitude} | {carPark.longitude}
-          </Text>
-          </Body>
         </CardItem>
         <CardItem style={styles.cardItem}>
-          <Left>
-            <Button iconLeft transparent>
-              <Icon name="locate" style={globalStyles.icon}/>
-              <Text style={globalStyles.icon}>Voir sur la carte</Text>
-            </Button>
-          </Left>
+          <List>
+              <ListItem style={styles.listItem}>
+                  <Icon name="cash" style={globalStyles.icon}/>
+                  <Text  style={styles.itemText}>{carPark.price}</Text>
+              </ListItem>
+              <ListItem  style={styles.listItem}>
+                <Icon name="book" style={globalStyles.icon}/>
+                <Text style={styles.itemText}>{carPark.description}</Text>
+              </ListItem>
+            </List>
         </CardItem>
       </Card>
     )
@@ -78,5 +73,12 @@ const styles = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
-  }
+  },
+  listItem: {
+    borderBottomWidth: 0
+  },
+  itemText: {
+    marginLeft: 10,
+    marginRight: 10
+  },
 });

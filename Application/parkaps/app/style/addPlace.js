@@ -59,7 +59,7 @@ export const addPlaceStyle = StyleSheet.create({
   },
   sendButton:{
     width:  WIDTH / 100 * 80,
-    marginTop: 100,
+    marginTop: 20,
     left: WIDTH / 2 - (WIDTH / 100 * 80) / 2,
 
     flex: 1,

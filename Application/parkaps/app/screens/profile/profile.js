@@ -34,31 +34,7 @@ export class ProfileScreen extends React.Component {
         this.setState({
           user: response.data.user,
         }, () => {
-          API.getUserCarParks(this.props.userStore.token, this.props.userStore.tokenType).then(response => {
-            if(response.status === 200){
-              this.setState({
-                loading: false,
-                carParks: response.data.carparks
-              })
-            } else {
-              Alert.alert(
-                "Erreur",
-                "Vos places de parking n'ont pas pu être récupérées"
-              );
-              this.setState({
-                loading: false
-              });
-            }
-          }).catch(error => {
-            console.log(error);
-            Alert.alert(
-              "Erreur",
-              "Vos places de parking n'ont pas pu être récupérées"
-            );
-            this.setState({
-              loading: false
-            });
-          })
+          this.fetchCarPark();
         })
       } else {
         Alert.alert(
@@ -81,6 +57,39 @@ export class ProfileScreen extends React.Component {
       })
   }
 
+  async fetchCarPark(){
+    this.setState({
+      loading: true,
+      carParks: []
+    }, () => {
+      API.getUserCarParks(this.props.userStore.token, this.props.userStore.tokenType).then(response => {
+        if(response.status === 200){
+          this.setState({
+            loading: false,
+            carParks: response.data.carparks
+          })
+        } else {
+          Alert.alert(
+            "Erreur",
+            "Vos places de parking n'ont pas pu être récupérées"
+          );
+          this.setState({
+            loading: false
+          });
+        }
+      }).catch(error => {
+        console.log(error);
+        Alert.alert(
+          "Erreur",
+          "Vos places de parking n'ont pas pu être récupérées"
+        );
+        this.setState({
+          loading: false
+        });
+      })
+    })
+  }
+
   openParameters(){
     this.props.navigation.navigate("Parameters");
   }
@@ -93,12 +102,13 @@ export class ProfileScreen extends React.Component {
 
   showInfoCarPark(carPark){
     // console.log(carPark);
-    // this.props.navigation.navigate("InfoCarPark", {carPark: carPark});
-    this.props.navigation.navigate("AddSchedule", {carPark: carPark, update: () => this.fetchUser()});
+    this.props.navigation.navigate("AddPlace", {carPark: carPark, update: () => this.fetchCarPark()});
+    // this.props.navigation.navigate("AddSchedule", {carPark: carPark, update: () => this.fetchUser()});
   }
 
+
   openNewPlace(){
-    this.props.navigation.navigate("AddPlace", {update: () => this.fetchUser()});
+    this.props.navigation.navigate("AddPlace", {update: () => this.fetchCarPark()});
   }
 
   render() {
@@ -113,7 +123,7 @@ export class ProfileScreen extends React.Component {
               <Text style={globalStyles.buttonText}>Ajouter une place</Text>
             </Button>
             {carParks.map((carPark, index) => {
-               return <PlaceCard key={index} carPark={carPark} onPress={this.showInfoCarPark}/>
+               return <PlaceCard key={index} carPark={carPark} onPress={this.showInfoCarPark} onShowMapPress={this.showMapCarPark}/>
             })}
             {/*{carParks.length === 0 ? <Text>Vous n'avez pas enregistrer de places de parking<Text/> : null}*/}
             <View style={profileStyles.debugView}/>

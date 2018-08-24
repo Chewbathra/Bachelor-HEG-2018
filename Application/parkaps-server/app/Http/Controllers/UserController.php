@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\CarPark;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -179,12 +180,12 @@ class UserController extends Controller
 
         $carParks = DB::table('car_parks')->where('user_id',$user->id)->get();
         foreach ($carParks as $carPark){
-            $availabilites = DB::table('availabilities')->where('car_park_id', $carPark->id)->get();
-            $dailyAvailabilites = DB::table('daily_availabilites')->where('car_park_id', $carPark->id)->get();
-            foreach ($availabilites as $availability){
+            $availabilities = DB::table('availabilities')->where('car_park_id', $carPark->id)->get();
+            $dailyAvailabilities = DB::table('daily_availabilites')->where('car_park_id', $carPark->id)->get();
+            foreach ($availabilities as $availability){
                 $availability->delete();
             }
-            foreach ($dailyAvailabilites as $dailyAvailability){
+            foreach ($dailyAvailabilities as $dailyAvailability){
                 $dailyAvailability->delete();
             }
             $carPark->delete();
@@ -217,7 +218,8 @@ class UserController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function carparks(Request $request){
-        $carParks = DB::table('car_parks')->where('user_id',$request->user()->id)->get();
+        $carParks = CarPark::where('user_id', $request->user()->id)->get();
+//        $carParks = DB::table('car_parks')->where('user_id',$request->user()->id)->get();
         return response()->json([
             'carparks' => $carParks
         ],200);

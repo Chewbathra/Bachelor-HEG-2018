@@ -147,7 +147,6 @@ export class AddScheduleScreen extends React.Component {
         }, () => {
           let start = new Date();
           let end = new Date();
-          console.log(this.state.startTime);
           start.setHours(this.state.startTime.getHours());
           start.setMinutes(this.state.startTime.getMinutes());
           end.setHours(this.state.endTime.getHours());
@@ -205,21 +204,6 @@ export class AddScheduleScreen extends React.Component {
                   loading: false,
                   dailyOpen: true
                 });
-                // let dailyItems = this.state.dailyItems;
-                // console.log(response.data);
-                // dailyItems.push({
-                //   id: response.data.availability.id,
-                //   start: new Date(response.data.availability.start),
-                //   end: new Date(response.data.availability.end)
-                // });
-                // this.setState({
-                //   loading: false,
-                //   startDate: null,
-                //   endDate: null,
-                //   startTime: null,
-                //   endTime: null,
-                //   dailyItems: dailyItems
-                // });
                 ToastAndroid.show('Votre horaire a correctement été enregistré', ToastAndroid.SHORT);
               } else {
                 Alert.alert(
@@ -574,7 +558,6 @@ export class AddScheduleScreen extends React.Component {
   }
 
   renderDailyItem(dailyItem){
-    console.log(dailyItem);
     const item = dailyItem['item'];
     const start = new Date(item.start);
     const end = new Date(item.end);

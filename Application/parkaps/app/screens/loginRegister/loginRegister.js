@@ -143,7 +143,7 @@ export class LoginRegisterScreen extends React.Component {
       } else {
         this.setState({
           loading: false,
-          errors: response.data.errors || [{"other": "Pour une raison inconnue, la connexion à votre compte a échoué | " + response}]
+          errors: response.data.errors || [{"other": "Pour une raison inconnue, la connexion à votre compte a échoué | " + JSON.stringify(response.data.errors)}]
         });
       }
     }).catch(response => {
@@ -181,13 +181,14 @@ export class LoginRegisterScreen extends React.Component {
         })
       } else {
         this.setState({
-          errors: response.data.errors || [{"other": "Pour une raison inconnue, la création de votre compte a échoué | " + response}]
+          loading: false,
+          errors: response.data.errors || [{"other": "Pour une raison inconnue, la création de votre compte a échoué | " + JSON.stringify(response)}]
         })
       }
     }).catch(error => {
       this.setState({
         loading: false,
-        errors: r[{"other": "Erreur inconnue | " + JSON.stringify(error)}]
+        errors: error.data.errors ||  [{"other": "Pour une raison inconnue, la création de votre compte a échoué | " + JSON.stringify(error)}]
       })
     })
   }
