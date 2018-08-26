@@ -44,7 +44,7 @@ class CarParkController extends Controller
             pi()/180))))*180/pi())*(60*1.1515*1609.344)
         ) as distance 
         FROM `car_parks`
-        WHERE 'deleted_at' = NULL
+        WHERE deleted_at IS NULL
         HAVING distance <= ".$radius.";"
         );
 
@@ -59,7 +59,7 @@ class CarParkController extends Controller
      * @param float|int|string $lat Latitude
      * @return bool `true` if $lat is valid, `false` if not
      */
-    function validateLatitude($lat) {
+    private function validateLatitude($lat) {
         return preg_match('/^(\+|-)?(?:90(?:(?:\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\.[0-9]{1,6})?))$/', $lat);
     }
 
@@ -69,7 +69,7 @@ class CarParkController extends Controller
      * @param float|int|string $long Longitude
      * @return bool `true` if $long is valid, `false` if not
      */
-    function validateLongitude($long) {
+    private function validateLongitude($long) {
         return preg_match('/^(\+|-)?(?:180(?:(?:\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\.[0-9]{1,6})?))$/', $long);
     }
 
@@ -125,16 +125,6 @@ class CarParkController extends Controller
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function show(Request $request)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -173,6 +163,11 @@ class CarParkController extends Controller
         }
 
         $carPark = CarPark::find($id);
+
+        if($request->user()->id != $carPark->user_id){
+            return response('Forbidden', 403);
+        }
+
         $carPark->latitude = $request->latitude;
         $carPark->longitude = $request->longitude;
         $carPark->address = $request->address;
@@ -188,11 +183,17 @@ class CarParkController extends Controller
      * Remove the specified resource from storage.
      *
      * @param $id
+     * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    public function delete($id)
+    public function delete($id, Request $request)
     {
         $carPark = CarPark::find($id);
+
+        if($request->user()->id != $carPark->user_id){
+            return response('Forbidden', 403);
+        }
+
         $availabilities = Availability::where('car_park_id', $carPark->id)->get();
         foreach ($availabilities as $availability){
             $availability->delete();

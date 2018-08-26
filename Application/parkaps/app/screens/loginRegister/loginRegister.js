@@ -165,6 +165,7 @@ export class LoginRegisterScreen extends React.Component {
     const password = this.refs['registerPassword']._root._lastNativeText;
     const passwordConfirmation = this.refs['registerPasswordConfirmation']._root._lastNativeText;
     API.registerWithEmail(name, email, password, passwordConfirmation).then(response => {
+      console.log(response);
       if(response.status === 201){
         ToastAndroid.showWithGravity(
           "Vous avez correctement été enregistré dans notre système. Veuillez valider votre compte grâce à l'email envoyé à " + email,
@@ -186,6 +187,7 @@ export class LoginRegisterScreen extends React.Component {
         })
       }
     }).catch(error => {
+      console.log(error);
       this.setState({
         loading: false,
         errors: error.data.errors ||  [{"other": "Pour une raison inconnue, la création de votre compte a échoué | " + JSON.stringify(error)}]

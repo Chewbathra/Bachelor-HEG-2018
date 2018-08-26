@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
 
 Route::post('users','UserController@create');
 //This route will change !
-Route::get('users/activate/{token}','UserController@activate');
+Route::get('users/activate/{token}','UserController@activate'); //A mettre en put
 Route::post('login', 'UserController@login');
 
 Route::group([
@@ -42,17 +42,17 @@ Route::group([
       Route::put('/{id}', 'CarParkController@modify');
       Route::get('/{id}', 'CarParkController@get');
       Route::delete('/{id}', 'CarParkController@delete');
-      Route::post('/search', 'CarParkController@search');
+      Route::post('/search', 'CarParkController@search'); //Changer en get
 
       Route::get('/{id}/availabilities', 'AvailabilityController@get');
+      Route::get('/{id}/occupants', 'OccupantController@get');
    });
 
    Route::group([
        'prefix' => 'availabilities'
    ], function() {
       Route::post('/', 'AvailabilityController@create');
-      Route::put('/{id}', 'AvailabilityController@modify');
-      Route::post('/{id}', 'AvailabilityController@delete');
+      Route::post('/{id}', 'AvailabilityController@delete'); //A mettre en delete
    });
 
    Route::group([

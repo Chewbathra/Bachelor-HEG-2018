@@ -61,6 +61,9 @@ export const Routes = createStackNavigator({
     MapModal: {
       screen: Screens.MapModalScreen
     },
+    AddOccupant: {
+      screen: Screens.AddOccupantScreen
+    },
     Parameters: {
       screen: Screens.ParametersScreen
     },

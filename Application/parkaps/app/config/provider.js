@@ -329,4 +329,25 @@ export class API {
       })
     });
   }
+
+  /**
+   * Return all occupants for a car park
+   * @param id - Car Park id
+   * @param token
+   * @param tokenType
+   * @return {Promise<Promise<any> | Promise>}
+   */
+  static  async getOccupantsForCarPark(id, token, tokenType){
+    return new Promise((resolve, reject) => {
+      client.get('carparks/' + id + '/occupants', {
+        headers: {
+          'Authorization': tokenType + ' ' + token
+        }
+      }).then(response => {
+        resolve(response);
+      }).catch(error => {
+        reject(error.response);
+      })
+    });
+  }
 }

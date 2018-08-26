@@ -179,7 +179,6 @@ export class MapScreen extends React.Component {
       this.setState({
         loading: true
       }, () => {
-        console.log(this.props.userStore.token, this.props.userStore.tokenType);
         API.searchCarPark(this.state.circle.center.latitude, this.state.circle.center.longitude, this.state.circle.radius, this.props.userStore.token, this.props.userStore.tokenType)
           .then(response => {
             if (response.data.results.length == 0) {
@@ -229,6 +228,10 @@ export class MapScreen extends React.Component {
     }
   }
 
+  openAddOccupant(){
+    this.props.navigation.navigate("AddOccupant", {carPark: this.state.marker});
+  }
+
   render() {
     let circle = null;
     let centerCircle = null;
@@ -266,7 +269,8 @@ export class MapScreen extends React.Component {
              </Body>
            </ListItem>
          </List>
-          <Button style={mapStyles.bookButton}>
+          <Button style={mapStyles.bookButton}
+            onPress={() => this.openAddOccupant()}>
             <Text style={globalStyles.buttonText}>RÉSERVER</Text>
           </Button>
           {/*<View>*/}

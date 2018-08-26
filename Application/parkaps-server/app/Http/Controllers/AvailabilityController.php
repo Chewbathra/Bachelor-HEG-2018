@@ -29,7 +29,12 @@ class AvailabilityController
     ];
 
 
-
+    /**
+     * Return all availabilities of a car park
+     *
+     * @param $id carPark id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function get($id)
     {
         $availabilities = DB::table('availabilities')->where('car_park_id', $id)->where('end', '>=', Carbon::now()->subMonth(1)->toDateTimeString())->get();
@@ -98,6 +103,9 @@ class AvailabilityController
         if($request->daily){
             $query = DB::table('daily_availabilities')->where('id', $id);
             $availability = $query->first();
+            if($availability->id != $request->user()->id){
+                return response('Forbidden', 403);
+            }
             $carPark = CarPark::find($availability->car_park_id);
             if($carPark->user_id == $request->user()->id){
                 $query->delete();
@@ -107,6 +115,9 @@ class AvailabilityController
         } else {
             $query = DB::table('availabilities')->where('id', $id);
             $availability = $query->first();
+            if($availability->id != $request->user()->id){
+                return response('Forbidden', 403);
+            }
             $carPark = CarPark::find($availability->car_park_id);
             if($carPark->user_id == $request->user()->id){
                 $query->delete();

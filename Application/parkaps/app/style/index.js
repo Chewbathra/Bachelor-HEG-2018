@@ -7,6 +7,7 @@ export * from './addPlace';
 export * from './mapModal';
 export * from './addSchedule';
 export * from './infoCarPark';
+export * from './addOccupant';
 
 
 
