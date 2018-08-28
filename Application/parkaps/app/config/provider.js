@@ -1,18 +1,8 @@
 import axios from 'axios';
 
 
-// const client = axios.create({
-//   baseURL: 'http://parkaps.chalet-schupbach.ch/api',
-//   timeout: 5000,
-//   headers: {
-//     'Content-Type': 'application/json',
-//     'X-Requested-With': 'XMLHttpRequest',
-//     'Accept': 'application/json'
-//   }
-// });
-
 const client = axios.create({
-  baseURL: 'http://192.168.1.127:8000/api',
+  baseURL: 'http://parkaps.chalet-schupbach.ch/api',
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
@@ -20,6 +10,16 @@ const client = axios.create({
     'Accept': 'application/json'
   }
 });
+
+// const client = axios.create({
+//   baseURL: 'http://192.168.1.127:8000/api',
+//   timeout: 5000,
+//   headers: {
+//     'Content-Type': 'application/json',
+//     'X-Requested-With': 'XMLHttpRequest',
+//     'Accept': 'application/json'
+//   }
+// });
 
 export class API {
 
@@ -246,7 +246,27 @@ export class API {
           'Authorization': tokenType + ' ' + token
         }
       }).then(response => {
-        console.log(response);
+        resolve(response);
+      }).catch(error => {
+        console.log(error);
+        reject(error.response);
+      })
+    })
+  }
+
+  /**
+   * Return all occupants of the connected user
+   * @param token
+   * @param tokenType
+   * @return {Promise<any> | Promise}
+   */
+  static getUserOccupants(token, tokenType){
+    return new Promise((resolve, reject) => {
+      client.get('user/occupants',{
+        headers: {
+          'Authorization': tokenType + ' ' + token
+        }
+      }).then(response => {
         resolve(response);
       }).catch(error => {
         console.log(error);
@@ -340,6 +360,55 @@ export class API {
   static  async getOccupantsForCarPark(id, token, tokenType){
     return new Promise((resolve, reject) => {
       client.get('carparks/' + id + '/occupants', {
+        headers: {
+          'Authorization': tokenType + ' ' + token
+        }
+      }).then(response => {
+        resolve(response);
+      }).catch(error => {
+        reject(error.response);
+      })
+    });
+  }
+
+  /**
+   * Create a new occupant
+   * @param start
+   * @param end
+   * @param carParkId
+   * @param token
+   * @param tokenType
+   * @return {Promise<Promise<any> | Promise>}
+   */
+  static async createOccupant(start, end, carParkId, token, tokenType){
+    return new Promise((resolve, reject) => {
+      const occupant = {
+        start: start.getTime(),
+        end: end.getTime(),
+        carParkId: carParkId
+      };
+      client.post('occupants', JSON.stringify(occupant),{
+        headers: {
+          'Authorization': tokenType + ' ' + token
+        }
+      }).then(response => {
+        resolve(response);
+      }).catch(error => {
+        reject(error.response);
+      })
+    });
+  }
+
+  /**
+   * Delete the selected occupant
+   * @param id
+   * @param token
+   * @param tokenType
+   * @return {Promise<any> | Promise}
+   */
+  static deleteOccupant(id, token, tokenType){
+    return new Promise((resolve, reject) => {
+      client.delete('occupants/' + id, {
         headers: {
           'Authorization': tokenType + ' ' + token
         }

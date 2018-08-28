@@ -143,15 +143,15 @@ export class LoginRegisterScreen extends React.Component {
       } else {
         this.setState({
           loading: false,
-          errors: response.data.errors || [{"other": "Pour une raison inconnue, la connexion à votre compte a échoué | " + JSON.stringify(response.data.errors)}]
+          errors: [{"other": "Pour une raison inconnue, la connexion à votre compte a échoué | " + JSON.stringify(response.data.errors)}]
         });
       }
-    }).catch(response => {
+    }).catch(error => {
       this.setState({
         loading: false,
-        errors: response.data.errors || [{"other": "Erreur inconnue | " + response}]
+        errors: error.data.errors || [{"other": "Erreur inconnue | " + JSON.stringify(error)}]
       });
-      console.log(response);
+      console.log(error);
     })
 
   }

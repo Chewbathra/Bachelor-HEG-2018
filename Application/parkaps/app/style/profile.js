@@ -53,5 +53,9 @@ export const profileStyles = StyleSheet.create({
   debugView: {
     // alignSelf: 'stretch'
     height: HEIGHT / 100 * 30
+  },
+  noInfoText: {
+    color: 'white',
+    textAlign: 'center'
   }
 });

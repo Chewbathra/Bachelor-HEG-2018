@@ -5,6 +5,7 @@ import {API} from "../../config/provider";
 
 import { Button, Icon } from 'native-base';
 import {PlaceCard} from "../../components/placeCard";
+import {OccupantCard} from "../../components/occupantCard";
 import {Loader} from "../../components/loader";
 
 import {profileStyles, globalStyles} from "../../style/index";
@@ -22,20 +23,29 @@ export class ProfileScreen extends React.Component {
         email: '',
       },
       carParks: [],
+      occupants: [],
       spotSelected: true,
     };
     this.showInfoCarPark = this.showInfoCarPark.bind(this);
+    this.deleteOccupant = this.deleteOccupant.bind(this);
+  }
+
+
+  componentDidMount(){
     this.fetchUser();
   }
 
   async fetchUser(){
+    this.setState({
+      loading: true,
+      carParks: []
+    }, () => {
     API.getUserInfos(this.props.userStore.token, this.props.userStore.tokenType).then(response => {
       if(response.status === 200){
         this.setState({
           user: response.data.user,
-        }, () => {
-          this.fetchCarPark();
-        })
+        });
+        this.fetchCarPark();
       } else {
         Alert.alert(
           "Erreur",
@@ -55,23 +65,53 @@ export class ProfileScreen extends React.Component {
         );
         console.log(error);
       })
+    });
   }
 
   async fetchCarPark(){
+    API.getUserCarParks(this.props.userStore.token, this.props.userStore.tokenType).then(response => {
+      if(response.status === 200){
+        this.setState({
+          carParks: response.data.carparks,
+          loading: false
+        });
+      } else {
+        Alert.alert(
+          "Erreur",
+          "Vos places de parking n'ont pas pu être récupérées"
+        );
+        this.setState({
+          loading: false
+        });
+      }
+    }).catch(error => {
+      console.log(error);
+      Alert.alert(
+        "Erreur",
+        "Vos places de parking n'ont pas pu être récupérées"
+      );
+      this.setState({
+        loading: false
+      });
+    })
+  }
+
+  fetchUserOccupants(){
     this.setState({
       loading: true,
-      carParks: []
+      occupants: []
     }, () => {
-      API.getUserCarParks(this.props.userStore.token, this.props.userStore.tokenType).then(response => {
+      API.getUserOccupants(this.props.userStore.token, this.props.userStore.tokenType).then(response => {
         if(response.status === 200){
           this.setState({
             loading: false,
-            carParks: response.data.carparks
-          })
+            occupants: response.data.occupants
+          });
+          console.log(response);
         } else {
           Alert.alert(
             "Erreur",
-            "Vos places de parking n'ont pas pu être récupérées"
+            "Vos réservations n'ont pas pu être récupérées"
           );
           this.setState({
             loading: false
@@ -81,7 +121,7 @@ export class ProfileScreen extends React.Component {
         console.log(error);
         Alert.alert(
           "Erreur",
-          "Vos places de parking n'ont pas pu être récupérées"
+          "Vos réservations n'ont pas pu être récupérées"
         );
         this.setState({
           loading: false
@@ -95,6 +135,9 @@ export class ProfileScreen extends React.Component {
   }
 
   setActiveList(list){
+    if(list == false){
+      this.fetchUserOccupants();
+    }
     this.setState({
       spotSelected: list
     })
@@ -111,8 +154,28 @@ export class ProfileScreen extends React.Component {
     this.props.navigation.navigate("AddPlace", {update: () => this.fetchCarPark()});
   }
 
+  deleteOccupant(occupant){
+    this.setState({
+      loading: true
+    }, () => {
+      API.deleteOccupant(occupant.id, this.props.userStore.token, this.props.userStore.tokenType)
+        .then(response => {
+          console.log(response);
+          this.fetchUserOccupants();
+        }).catch(error => {
+          console.log(error);
+          Alert.alert(
+            'Erreur',
+            "Votre réservation n'a pas pu être supprimée"
+          );
+          this.setState({
+            loading: false
+          })
+      })
+    });
+  }
   render() {
-    const {user, carParks} = this.state;
+    const {user, carParks, occupants} = this.state;
     let list = null;
     if(this.state.spotSelected){
       list =
@@ -123,12 +186,23 @@ export class ProfileScreen extends React.Component {
               <Text style={globalStyles.buttonText}>Ajouter une place</Text>
             </Button>
             {carParks.map((carPark, index) => {
-               return <PlaceCard key={index} carPark={carPark} onPress={this.showInfoCarPark} onShowMapPress={this.showMapCarPark}/>
+               return <PlaceCard key={index} carPark={carPark} onPress={this.showInfoCarPark}/>
             })}
-            {/*{carParks.length === 0 ? <Text>Vous n'avez pas enregistrer de places de parking<Text/> : null}*/}
+            {carParks.length === 0 ? <Text style={profileStyles.noInfoText}>Vous n'avez pas créer de places de parking</Text> : null}
             <View style={profileStyles.debugView}/>
           </ScrollView>
         </View>;
+    } else {
+      list =
+      <View style={profileStyles.listContainer}>
+        <ScrollView style={{width: Dimensions.get('window').width}}>
+          {occupants.map((occupant, index) => {
+            return <OccupantCard key={index} occupant={occupant} onDelete={this.deleteOccupant}/>
+          })}
+          {occupants.length === 0 ? <Text style={profileStyles.noInfoText}>Vous n'avez pas réservé de places de parking</Text> : null}
+          <View style={profileStyles.debugView}/>
+        </ScrollView>
+      </View>;
     }
     return (
       <View style={profileStyles.container}>

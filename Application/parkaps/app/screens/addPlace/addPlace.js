@@ -276,7 +276,9 @@ export class AddPlaceScreen extends React.Component {
             </Button>
           </Left>
           <Body>
-            <Title>Ajout d'une place</Title>
+            <Title>
+              {this.state.carPark.id != null ? "Modification d'une place" : 'Ajout d\'une place'}
+            </Title>
           </Body>
         </Header>
         <KeyboardAwareScrollView keyboardShouldPersistTaps='always'>

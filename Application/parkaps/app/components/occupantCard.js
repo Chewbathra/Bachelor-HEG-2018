@@ -11,44 +11,32 @@ import {globalStyles} from "../style";
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
 
-export class PlaceCard extends React.Component{
+export class OccupantCard extends React.Component{
 
   constructor(props){
     super(props);
     this.state = {
-      carPark: props.carPark
+      occupant: props.occupant
     }
   }
 
-  showDetails(){
-    this.props.onPress(this.state.carPark)
+  deleteOccupant(){
+    this.props.onDelete(this.state.occupant);
   }
 
+
   render() {
-    const {carPark} = this.state
+    const {occupant} = this.state;
     return (
       <Card button  style={styles.card}>
-        <CardItem button  style={styles.cardItem} onPress={() => this.showDetails()}>
+        <CardItem button style={styles.cardItem} onPress={() => this.deleteOccupant()}>
           <Left>
-            <Thumbnail source={{uri: 'https://picsum.photos/200'}}/>
             <Body>
-              <Text style={{color: 'white'}}>{carPark.address}</Text>
-              <Text note>{carPark.latitude} | {carPark.longitude}</Text>
+              <Text style={styles.text}>Du {new Date(occupant.start).toLocaleDateString()} à {new Date(occupant.start).toLocaleTimeString()}</Text>
+              <Text style={styles.text}>au {new Date(occupant.end).toLocaleDateString()} à {new Date(occupant.end).toLocaleTimeString()}</Text>
             </Body>
-            <Icon name="build" style={globalStyles.icon}/>
+            <Icon name="trash" style={[globalStyles.icon, styles.icon]}/>
           </Left>
-        </CardItem>
-        <CardItem style={styles.cardItem}>
-          <List>
-              <ListItem style={styles.listItem}>
-                  <Icon name="cash" style={globalStyles.icon}/>
-                  <Text  style={styles.itemText}>{carPark.price}</Text>
-              </ListItem>
-              <ListItem  style={styles.listItem}>
-                <Icon name="book" style={globalStyles.icon}/>
-                <Text style={styles.itemText}>{carPark.description}</Text>
-              </ListItem>
-            </List>
         </CardItem>
       </Card>
     )
@@ -79,7 +67,12 @@ const styles = StyleSheet.create({
   },
   itemText: {
     marginLeft: 10,
-    marginRight: 10,
+    marginRight: 10
+  },
+  text: {
     color: 'white'
   },
+  icon: {
+    color: 'red'
+  }
 });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\CarPark;
+use App\Occupant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -223,5 +224,13 @@ class UserController extends Controller
         return response()->json([
             'carparks' => $carParks
         ],200);
+    }
+
+    public function occupants(Request $request){
+        $occupants = Occupant::where('user_id', $request->user()->id)->get();
+
+        return response()->json([
+            'occupants' => $occupants
+        ], 200);
     }
 }

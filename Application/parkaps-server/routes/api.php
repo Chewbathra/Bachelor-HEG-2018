@@ -30,7 +30,7 @@ Route::group([
    Route::get('user', 'UserController@get');
    Route::put('user', 'UserController@modify');
    Route::delete('user', 'UserController@delete');
-   Route::get('user/occupants', 'OccupantController@get');
+   Route::get('user/occupants', 'UserController@get');
    Route::get('user/carparks','UserController@carparks');
 
    Route::get('/token', 'UserController@testToken');

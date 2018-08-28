@@ -103,9 +103,6 @@ class AvailabilityController
         if($request->daily){
             $query = DB::table('daily_availabilities')->where('id', $id);
             $availability = $query->first();
-            if($availability->id != $request->user()->id){
-                return response('Forbidden', 403);
-            }
             $carPark = CarPark::find($availability->car_park_id);
             if($carPark->user_id == $request->user()->id){
                 $query->delete();
@@ -115,9 +112,6 @@ class AvailabilityController
         } else {
             $query = DB::table('availabilities')->where('id', $id);
             $availability = $query->first();
-            if($availability->id != $request->user()->id){
-                return response('Forbidden', 403);
-            }
             $carPark = CarPark::find($availability->car_park_id);
             if($carPark->user_id == $request->user()->id){
                 $query->delete();

@@ -114,9 +114,9 @@ export class AddScheduleScreen extends React.Component {
   /**
    * Change the active segment
    */
-  changeSegment(){
+  changeSegment(value){
     this.setState({
-      dailyOpen: !this.state.dailyOpen,
+      dailyOpen: value,
       loading: true,
     }, () => this.setState({loading: false}));
   }
@@ -729,11 +729,11 @@ export class AddScheduleScreen extends React.Component {
         <Text style={[globalStyles.buttonText, addScheduleStyles.addressText]}>{this.state.carPark.address}</Text>
         <View style={[globalStyles.segmentContainer, profileStyles.segment]}>
           <Button style={[globalStyles.segmentButton, this.state.dailyOpen ? globalStyles.segmentUnselected : globalStyles.segmentSelected]}
-                  onPress={() => this.changeSegment()}>
+                  onPress={() => this.changeSegment(false)}>
             <Text style={globalStyles.segmentText}>NORMAUX</Text>
           </Button>
           <Button style={[globalStyles.segmentButton, this.state.dailyOpen ? globalStyles.segmentSelected : globalStyles.segmentUnselected]}
-                  onPress={() => this.changeSegment()}>
+                  onPress={() => this.changeSegment(true)}>
             <Text style={globalStyles.segmentText}>JOURNALIERS</Text>
           </Button>
         </View>
