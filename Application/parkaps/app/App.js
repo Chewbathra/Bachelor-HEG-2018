@@ -16,11 +16,11 @@ import {globalStyles} from './style/index'
 
 import SplashScreen from 'react-native-splash-screen';
 
-YellowBox.ignoreWarnings([
-  "Warning: isMounted(...) is deprecated in plain JavaScript React classes. Instead, make sure to clean up subscriptions and pending requests in componentWillUnmount to prevent memory leaks.",
-  "Remote",
-  "VirtualizedList: missing keys for items"
-]);
+// YellowBox.ignoreWarnings([
+//   "Warning: isMounted(...) is deprecated in plain JavaScript React classes. Instead, make sure to clean up subscriptions and pending requests in componentWillUnmount to prevent memory leaks.",
+//   "Remote",
+//   "VirtualizedList: missing keys for items"
+// ]);
 
 const {StatusBarManager } = NativeModules;
 

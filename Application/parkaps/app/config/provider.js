@@ -406,9 +406,47 @@ export class API {
    * @param tokenType
    * @return {Promise<any> | Promise}
    */
-  static deleteOccupant(id, token, tokenType){
+  static async deleteOccupant(id, token, tokenType){
     return new Promise((resolve, reject) => {
       client.delete('occupants/' + id, {
+        headers: {
+          'Authorization': tokenType + ' ' + token
+        }
+      }).then(response => {
+        resolve(response);
+      }).catch(error => {
+        reject(error.response);
+      })
+    });
+  }
+
+  /**
+   * Delete the connected user
+   * @param token
+   * @param tokenType
+   * @return {Promise<any> | Promise}
+   */
+  static async deleteUser(token, tokenType){
+    return new Promise((resolve, reject) => {
+      client.delete('user', {
+        headers: {
+          'Authorization': tokenType + ' ' + token
+        }
+      }).then(response => {
+        resolve(response);
+      }).catch(error => {
+        reject(error.response);
+      })
+    });
+  }
+
+  static async modifyUser(user, token, tokenType){
+    return new Promise((resolve, reject) => {
+      const userToModify = {
+        name: user.name,
+        email: user.email
+      }
+      client.put('user', JSON.stringify(userToModify), {
         headers: {
           'Authorization': tokenType + ' ' + token
         }

@@ -40,6 +40,16 @@ class AvailabilityController
         $availabilities = DB::table('availabilities')->where('car_park_id', $id)->where('end', '>=', Carbon::now()->subMonth(1)->toDateTimeString())->get();
         $dailyAvailabilities = DB::table('daily_availabilities')->where('car_park_id', $id)->where('end', '>=', Carbon::now()->subMonth(1)->toDateTimeString())->get();
 
+        foreach ($availabilities as $availability){
+            $availability->start = Carbon::parse($availability->start)->toW3cString();
+            $availability->end = Carbon::parse($availability->end)->toW3cString();
+        }
+
+        foreach ($dailyAvailabilities as $dailyAvailability) {
+            $dailyAvailability->start = Carbon::parse($dailyAvailability->start)->toW3cString();
+            $dailyAvailability->end = Carbon::parse($dailyAvailability->end)->toW3cString();
+        }
+
         return response()->json([
             'availabilities' => $availabilities,
             'daily_availabilities' => $dailyAvailabilities
@@ -66,8 +76,8 @@ class AvailabilityController
        $availability = null;
        if($request->daily){
            $availability = new DailyAvailability([
-               'start' => Carbon::createFromTimestampMs($request->start)->addHours(2),
-               'end' =>  Carbon::createFromTimestampMs($request->end)->addHours(2),
+               'start' => Carbon::createFromTimestampMs($request->start),
+               'end' =>  Carbon::createFromTimestampMs($request->end),
                'car_park_id' => $request->carParkId
            ]);
        } else {

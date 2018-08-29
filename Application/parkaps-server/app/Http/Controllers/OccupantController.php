@@ -16,8 +16,8 @@ class OccupantController extends Controller
         ]);
 
         $occupant = new Occupant([
-            'start' => Carbon::createFromTimestampMs($request->start)->addHours(2),
-            'end' => Carbon::createFromTimestampMs($request->end)->addHours(2),
+            'start' => Carbon::createFromTimestampMs($request->start),
+            'end' => Carbon::createFromTimestampMs($request->end),
             'car_park_id' => $request->carParkId,
             'user_id' => $request->user()->id
         ]);
@@ -30,6 +30,10 @@ class OccupantController extends Controller
         $id = $request->route('id');
 
         $occupants = Occupant::where('car_park_id', $id)->get();
+        foreach ($occupants as $occupant){
+            $occupant->start = Carbon::parse($occupant->start)->toW3cString();
+            $occupant->end = Carbon::parse($occupant->end)->toW3cString();
+        }
 
         return response()->json([
             'occupants' => $occupants

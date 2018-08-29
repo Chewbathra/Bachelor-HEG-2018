@@ -107,7 +107,6 @@ export class ProfileScreen extends React.Component {
             loading: false,
             occupants: response.data.occupants
           });
-          console.log(response);
         } else {
           Alert.alert(
             "Erreur",
@@ -130,8 +129,9 @@ export class ProfileScreen extends React.Component {
     })
   }
 
+
   openParameters(){
-    this.props.navigation.navigate("Parameters");
+    this.props.navigation.navigate("Parameters", {user: this.state.user});
   }
 
   setActiveList(list){
@@ -160,7 +160,6 @@ export class ProfileScreen extends React.Component {
     }, () => {
       API.deleteOccupant(occupant.id, this.props.userStore.token, this.props.userStore.tokenType)
         .then(response => {
-          console.log(response);
           this.fetchUserOccupants();
         }).catch(error => {
           console.log(error);
@@ -196,10 +195,10 @@ export class ProfileScreen extends React.Component {
       list =
       <View style={profileStyles.listContainer}>
         <ScrollView style={{width: Dimensions.get('window').width}}>
-          {occupants.map((occupant, index) => {
+          {this.state.occupants.map((occupant, index) => {
             return <OccupantCard key={index} occupant={occupant} onDelete={this.deleteOccupant}/>
           })}
-          {occupants.length === 0 ? <Text style={profileStyles.noInfoText}>Vous n'avez pas réservé de places de parking</Text> : null}
+          {this.state.occupants.length === 0 ? <Text style={profileStyles.noInfoText}>Vous n'avez pas réservé de places de parking</Text> : null}
           <View style={profileStyles.debugView}/>
         </ScrollView>
       </View>;

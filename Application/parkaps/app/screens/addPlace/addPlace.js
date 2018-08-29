@@ -40,10 +40,10 @@ export class AddPlaceScreen extends React.Component {
 
   goToProfile(){
     if(this.state.carPark.id != null){
-      this.props.navigation.navigate("Profile");
+      this.props.navigation.pop();
       this.props.navigation.getParam('update')();
     } else {
-      this.props.navigation.navigate("Profile");
+      this.props.navigation.pop();
     }
   }
 
@@ -101,7 +101,6 @@ export class AddPlaceScreen extends React.Component {
       )
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         navigator.geolocation.getCurrentPosition((position) => {
-          console.log(position);
           this.setState({
             latitude: null,
             longitude: null
@@ -132,7 +131,6 @@ export class AddPlaceScreen extends React.Component {
           }
         })
       } else {
-        console.log("Camera permission denied")
       }
     } catch (error) {
       Alert.alert(

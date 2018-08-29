@@ -65,35 +65,35 @@ export class LoginRegisterScreen extends React.Component {
     return true;
   }
 
-  async userAlreadyConnected(){
-    const token = await AsyncStorage.getItem('token');
-    const tokenType = await AsyncStorage.getItem('tokenType');
-    if(token != null && tokenType != null){
-      API.getUserInfos(token, tokenType)
-        .then(res => {
-          this.setState({
-            loading: false
-          })
-          if(res.status === 200){
-            this.props.userStore.setToken(token, tokenType);
-            this.props.navigation.navigate("Map");
-          } else {
-            AsyncStorage.removeItem('token');
-            AsyncStorage.removeItem('tokenType');
-          }
-        }).catch(error => {
-        console.log(error);
-        AsyncStorage.removeItem('token');
-        AsyncStorage.removeItem('tokenType');
-        this.setState({
-          loading: false
-        })
-      });
-    }
-    this.setState({
-      loading: false
-    })
-  }
+  // async userAlreadyConnected(){
+  //   const token = await AsyncStorage.getItem('token');
+  //   const tokenType = await AsyncStorage.getItem('tokenType');
+  //   if(token != null && tokenType != null){
+  //     API.getUserInfos(token, tokenType)
+  //       .then(res => {
+  //         this.setState({
+  //           loading: false
+  //         })
+  //         if(res.status === 200){
+  //           this.props.userStore.setToken(token, tokenType);
+  //           this.props.navigation.navigate("Map");
+  //         } else {
+  //           AsyncStorage.removeItem('token');
+  //           AsyncStorage.removeItem('tokenType');
+  //         }
+  //       }).catch(error => {
+  //       console.log(error);
+  //       AsyncStorage.removeItem('token');
+  //       AsyncStorage.removeItem('tokenType');
+  //       this.setState({
+  //         loading: false
+  //       })
+  //     });
+  //   }
+  //   this.setState({
+  //     loading: false
+  //   })
+  // }
 
   /**
    * Change the current form displayed
@@ -134,6 +134,7 @@ export class LoginRegisterScreen extends React.Component {
         //   AsyncStorage.setItem('tokenType', response.data.token_type);
         // }
         this.props.userStore.setToken(response.data.access_token, response.data.token_type);
+        this.refs['loginPassword']._root._lastNativeText = '';
         this.setState({
           loading: false,
           errors: []
@@ -165,7 +166,6 @@ export class LoginRegisterScreen extends React.Component {
     const password = this.refs['registerPassword']._root._lastNativeText;
     const passwordConfirmation = this.refs['registerPasswordConfirmation']._root._lastNativeText;
     API.registerWithEmail(name, email, password, passwordConfirmation).then(response => {
-      console.log(response);
       if(response.status === 201){
         ToastAndroid.showWithGravity(
           "Vous avez correctement été enregistré dans notre système. Veuillez valider votre compte grâce à l'email envoyé à " + email,
@@ -188,10 +188,17 @@ export class LoginRegisterScreen extends React.Component {
       }
     }).catch(error => {
       console.log(error);
-      this.setState({
-        loading: false,
-        errors: error.data.errors ||  [{"other": "Pour une raison inconnue, la création de votre compte a échoué | " + JSON.stringify(error)}]
-      })
+      if(error.data.errors != null){
+        this.setState({
+          loading: false,
+          errors: error.data.errors
+        })
+      } else {
+        this.setState({
+          loading: false,
+          errors: [{"other": "Pour une raison inconnue, la création de votre compte a échoué | "}]
+        })
+      }
     })
   }
 
@@ -239,7 +246,7 @@ export class LoginRegisterScreen extends React.Component {
         <Icon name='lock' style={globalStyles.icon}/>
         <Input key={5} placeholder="Confirmer le mot de passe" secureTextEntry={true} placeholderTextColor="#959DAD" ref="registerPasswordConfirmation"/>
       </Item>
-      <Text style={logInUpStyle.inputError}>{errors["other"] == null ? '' : terrors["other"]}</Text>
+      <Text style={logInUpStyle.inputError}>{errors["other"] == null ? '' : errors["other"]}</Text>
     </Form>;
 
     return (

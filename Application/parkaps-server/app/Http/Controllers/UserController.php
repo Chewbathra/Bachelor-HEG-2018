@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Availability;
 use App\CarPark;
+use App\DailyAvailability;
 use App\Occupant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -179,10 +181,10 @@ class UserController extends Controller
 
         $user = User::find($request->user()->id);
 
-        $carParks = DB::table('car_parks')->where('user_id',$user->id)->get();
+        $carParks = CarPark::where('user_id',$user->id)->get();
         foreach ($carParks as $carPark){
-            $availabilities = DB::table('availabilities')->where('car_park_id', $carPark->id)->get();
-            $dailyAvailabilities = DB::table('daily_availabilites')->where('car_park_id', $carPark->id)->get();
+            $availabilities = Availability::where('car_park_id', $carPark->id)->get();
+            $dailyAvailabilities = DailyAvailability::where('car_park_id', $carPark->id)->get();
             foreach ($availabilities as $availability){
                 $availability->delete();
             }
@@ -198,15 +200,11 @@ class UserController extends Controller
 
     public function modify(Request $request){
         $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|string|email|unique:users',
-            'password' => 'required|string|confirmed'
+            'name' => 'required|string'
         ],$this->messages);
 
         $user = User::find($request->user()->id);
         $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
         $user->save();
 
         return response(201);
@@ -228,6 +226,10 @@ class UserController extends Controller
 
     public function occupants(Request $request){
         $occupants = Occupant::where('user_id', $request->user()->id)->get();
+        foreach ($occupants as $occupant){
+            $occupant->start = Carbon::parse($occupant->start)->toW3cString();
+            $occupant->end = Carbon::parse($occupant->end)->toW3cString();
+        }
 
         return response()->json([
             'occupants' => $occupants

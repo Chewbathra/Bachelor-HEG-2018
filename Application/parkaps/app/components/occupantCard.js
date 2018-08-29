@@ -24,6 +24,27 @@ export class OccupantCard extends React.Component{
     this.props.onDelete(this.state.occupant);
   }
 
+  formatDate(date) {
+    const monthNames = [
+      "Janvier", "Février", "Mars",
+      "AVril", "Mai", "Juin", "Juillet",
+      "Août", "Septembre", "Octobre",
+      "Novembre", "Décembre"
+    ];
+
+    const day = date.getDate();
+    const monthIndex = date.getMonth();
+    const year = date.getFullYear();
+    const hour = date.getHours();
+    let minutes = date.getMinutes();
+
+    if(minutes < 10){
+      minutes = "0" + minutes;
+    }
+
+    return day + ' ' + monthNames[monthIndex] + ' ' + year + ' ' + hour + ':' + minutes;
+  }
+
 
   render() {
     const {occupant} = this.state;
@@ -32,8 +53,8 @@ export class OccupantCard extends React.Component{
         <CardItem button style={styles.cardItem} onPress={() => this.deleteOccupant()}>
           <Left>
             <Body>
-              <Text style={styles.text}>Du {new Date(occupant.start).toLocaleDateString()} à {new Date(occupant.start).toLocaleTimeString()}</Text>
-              <Text style={styles.text}>au {new Date(occupant.end).toLocaleDateString()} à {new Date(occupant.end).toLocaleTimeString()}</Text>
+              <Text style={styles.text}>Du {this.formatDate(new Date(occupant.start))}</Text>
+              <Text style={styles.text}>au {this.formatDate(new Date(occupant.end))}</Text>
             </Body>
             <Icon name="trash" style={[globalStyles.icon, styles.icon]}/>
           </Left>

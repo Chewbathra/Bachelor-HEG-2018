@@ -62,22 +62,19 @@ export class AddOccupantScreen extends React.Component {
           occupants: occupants.data.occupants
         });
         this.fetchAvailabilities().then(async response => {
-          for(let i = 0; i < response.data.availabilities.length; i++){
-            occupants.data.occupants.forEach(occupant => {
-              console.log(response.data.availabilities);
+          let length = response.data.availabilities.length;
+          for(let i = 0; i < length; i++){
+            for(let j = 0; j < occupants.data.occupants.length; j++){
+              const occupant = occupants.data.occupants[j];
               let start = new Date(response.data.availabilities[i].start);
               let end = new Date(response.data.availabilities[i].end);
               const occupantStart = new Date(occupant.start);
               const occupantEnd = new Date(occupant.end);
-              console.log('occupantStart' , occupantStart);
-              console.log('start', start);
-              console.log('occupantEnd', occupantEnd);
-              console.log('end', end);
               if(occupantStart >= start){
                 if(occupantEnd <= end){
                   if(occupantStart.getTime() === start.getTime() && occupantEnd.getTime() === end.getTime()){
-                    console.log('splice');
                     response.data.availabilities.splice(i,1);
+                    break;
                   } else {
                     if(occupantStart > start){
                       if(occupantEnd.getTime() === end.getTime()){
@@ -101,21 +98,25 @@ export class AddOccupantScreen extends React.Component {
               } else if (occupantEnd <= end && occupantStart < start){
                 if(occupantEnd.getTime() === end.getTime()){
                   response.data.availabilities.splice(i,1);
+                  break;
                 } else {
                   response.data.availabilities[i].start = new Date(occupantEnd);
                 }
               } else if(occupantStart >= start && occupantEnd >= end){
                 if(occupantStart.getTime() === start.getTime()){
                   response.data.availabilities.splice(i,1);
+                  break;
                 } else {
                   response.data.availabilities.splice(i,1);
                   response.data.availabilities.push({
                     start: start,
                     end: occupantStart
                   })
+                  break;
                 }
               }
-            });
+            }
+            length = response.data.availabilities.length;
           }
 
           await this.asyncForEach(response.data.availabilities, async (availability) => {
@@ -142,6 +143,51 @@ export class AddOccupantScreen extends React.Component {
         });
       });
     });
+  }
+
+  formatDate(date) {
+    const monthNames = [
+      "Janvier", "Février", "Mars",
+      "AVril", "Mai", "Juin", "Juillet",
+      "Août", "Septembre", "Octobre",
+      "Novembre", "Décembre"
+    ];
+
+    const day = date.getDate();
+    const monthIndex = date.getMonth();
+    const year = date.getFullYear();
+    const hour = date.getHours();
+    let minutes = date.getMinutes();
+
+    if(minutes < 10){
+      minutes = "0" + minutes;
+    }
+
+    return day + ' ' + monthNames[monthIndex] + ' ' + year + ' ' + hour + ':' + minutes;
+  }
+
+  formatOnlyDate(date){
+    const day = date.getDate();
+    let monthIndex = date.getMonth();
+    const year = date.getFullYear();
+
+    if(monthIndex < 10){
+      monthIndex = "0" + monthIndex;
+    }
+
+    return day + '/' + monthIndex + '/' + year;
+  }
+
+  formatOnlyTime(date){
+
+    const hour = date.getHours();
+    let minutes = date.getMinutes();
+
+    if(minutes < 10){
+      minutes = "0" + minutes;
+    }
+
+    return hour + ':' + minutes;
   }
 
   fetchAvailabilities(){
@@ -228,8 +274,8 @@ export class AddOccupantScreen extends React.Component {
   }
 
   displaySelectedDay(day){
-    const startDate = new Date(day.timestamp);
-    const endDate = new Date(day.timestamp);
+    let startDate = new Date(day.timestamp);
+    let endDate = new Date(day.timestamp)
     startDate.setHours(23);
     startDate.setMinutes(59);
     endDate.setHours(0);
@@ -430,7 +476,6 @@ export class AddOccupantScreen extends React.Component {
         } else {
           API.createOccupant(start, end, this.state.carPark.id, this.props.userStore.token, this.props.userStore.tokenType)
             .then(response => {
-              console.log(response);
               this.setState({
                 visible: false
               });
@@ -456,7 +501,7 @@ export class AddOccupantScreen extends React.Component {
         <Header style={globalStyles.header} androidStatusBarColor='#000000'>
           <Left>
             <Button transparent
-                    onPress={() => this.props.navigation.goBack()}>
+                    onPress={() => this.props.navigation.pop()}>
               <Icon name="arrow-back"/>
             </Button>
           </Left>
@@ -548,13 +593,13 @@ export class AddOccupantScreen extends React.Component {
               }}
             />
             <View style={addOccupantStyles.availabilities}>
-              {this.state.selectedDay === null ? null : <Title style={addOccupantStyles.availabilitiesTitle}>Horaires disponible pour le {this.state.selectedDay.toLocaleDateString()}</Title>}
+              {this.state.selectedDay === null ? null : <Title style={addOccupantStyles.availabilitiesTitle}>Horaires disponible pour le {this.state.selectedDay.getDate()}/{this.state.selectedDay.getMonth()}/{this.state.selectedDay.getFullYear()}</Title>}
 
             {this.state.displayDates.map(date => {
               const start = new Date(date.start);
               const end = new Date(date.end);
               return (
-                <Text key={'test' + start.getTime() + end.getTime()} style={addOccupantStyles.availabilitiesItem}>Du {start.toLocaleString()} au {end.toLocaleString()}</Text>
+                <Text key={'test' + start.getTime() + end.getTime()} style={addOccupantStyles.availabilitiesItem}>Du {this.formatDate(start)} au {this.formatDate(end)}</Text>
               )
             })}
             </View>
@@ -576,7 +621,7 @@ export class AddOccupantScreen extends React.Component {
                 <Item style={addOccupantStyles.input}>
                   <Icon name='clock' style={globalStyles.icon}/>
                   <Input placeholder="Date de début" placeholderTextColor="#959DAD" ref="start" editable={false}
-                         value={this.state.startDate == null ? '' : this.state.startDate.toLocaleDateString()}/>
+                         value={this.state.startDate == null ? '' : this.formatOnlyDate(this.state.startDate)}/>
                   <Button warning style={addOccupantStyles.inputButton}
                           onPress={() => this.setStartDate()}>
                     <Icon name='create' />
@@ -585,7 +630,7 @@ export class AddOccupantScreen extends React.Component {
                 <Item style={addOccupantStyles.input}>
                   <Icon name='clock' style={globalStyles.icon}/>
                   <Input placeholder="Heure de début" placeholderTextColor="#959DAD" ref="start" editable={false}
-                         value={this.state.startTime == null ? '' : this.state.startTime.getHours() + ':' + this.state.startTime.getMinutes()}/>
+                         value={this.state.startTime == null ? '' : this.formatOnlyTime(this.state.startTime)}/>
                   <Button warning style={addOccupantStyles.inputButton}
                           onPress={() => this.setStartTime()}>
                     <Icon name='create' />
@@ -594,7 +639,7 @@ export class AddOccupantScreen extends React.Component {
                 <Item style={addOccupantStyles.input}>
                   <Icon name='clock' style={globalStyles.icon}/>
                   <Input placeholder="Date de fin" placeholderTextColor="#959DAD" ref="end" editable={false}
-                         value={this.state.endDate == null ? '' : this.state.endDate.toLocaleDateString()}/>
+                         value={this.state.endDate == null ? '' : this.formatOnlyDate(this.state.endDate)}/>
                   <Button warning style={addOccupantStyles.inputButton}
                           onPress={() => this.setEndDate()}>
                     <Icon name='create' />
@@ -603,7 +648,7 @@ export class AddOccupantScreen extends React.Component {
                 <Item style={addOccupantStyles.input}>
                   <Icon name='clock' style={globalStyles.icon}/>
                   <Input placeholder="Heure de fin" placeholderTextColor="#959DAD" ref="start" editable={false}
-                         value={this.state.endTime == null ? '' : this.state.endTime.getHours() + ':' + this.state.endTime.getMinutes()}/>
+                         value={this.state.endTime == null ? '' : this.formatOnlyTime(this.state.endTime)}/>
                   <Button warning style={addOccupantStyles.inputButton}
                           onPress={() => this.setEndTime()}>
                     <Icon name='create' />

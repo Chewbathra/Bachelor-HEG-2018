@@ -66,7 +66,7 @@ export class AddScheduleScreen extends React.Component {
     }, () => {
       API.searchavailabilities(this.state.carPark.id, this.props.userStore.token, this.props.userStore.tokenType)
         .then(async response => {
-          if(response.status == 200){
+          if(response.status === 200){
             const availabilites = response.data.availabilities;
             this.state.dailyItems = response.data.daily_availabilities;
             let stateDates = this.state.dates;
@@ -107,7 +107,8 @@ export class AddScheduleScreen extends React.Component {
    * Go back to profile page and reload car park list
    */
   goToProfile(){
-    this.props.navigation.navigate("Profile");
+    this.props.navigation.pop();
+    this.props.navigation.pop();
     this.props.navigation.getParam('update')();
   }
 
@@ -436,6 +437,52 @@ export class AddScheduleScreen extends React.Component {
     return 'hsla(' + (Math.random() * 360) + ', 50%, 70%, 0.8)';
   }
 
+  formatDate(date) {
+    const monthNames = [
+      "Janvier", "Février", "Mars",
+      "AVril", "Mai", "Juin", "Juillet",
+      "Août", "Septembre", "Octobre",
+      "Novembre", "Décembre"
+    ];
+
+    const day = date.getDate();
+    const monthIndex = date.getMonth();
+    const year = date.getFullYear();
+    const hour = date.getHours();
+    let minutes = date.getMinutes();
+
+    if(minutes < 10){
+      minutes = "0" + minutes;
+    }
+
+    return day + ' ' + monthNames[monthIndex] + ' ' + year + ' ' + hour + ':' + minutes;
+  }
+
+  formatOnlyDate(date){
+    const day = date.getDate();
+    let monthIndex = date.getMonth();
+    const year = date.getFullYear();
+
+    if(monthIndex < 10){
+      monthIndex = "0" + monthIndex;
+    }
+
+    return day + '/' + monthIndex + '/' + year;
+  }
+
+  formatOnlyTime(date){
+
+    const hour = date.getHours();
+    let minutes = date.getMinutes();
+
+    if(minutes < 10){
+      minutes = "0" + minutes;
+    }
+
+    return hour + ':' + minutes;
+  }
+
+
   /**
    * Save all dates to items for calendar and create markedDates for displaying
    * @param {Array} dates - Dates to save
@@ -447,7 +494,7 @@ export class AddScheduleScreen extends React.Component {
    */
   saveDatesToItems(dates, start, end, availabilityId){
     return new Promise((resolve) => {
-      let name = "Du " + start.toLocaleString() + " au " + end.toLocaleString();
+      let name = "Du " + this.formatDate(start) + " au " + this.formatDate(end);
       let newItems = this.state.items;
       let newMarkedDates = this.state.markedDates;
       let item = {
@@ -462,22 +509,24 @@ export class AddScheduleScreen extends React.Component {
           newItems[date] = [item]
         }
       });
-      if(start.toDateString() === end.toDateString() && newMarkedDates[start.toISOString().split('T')[0]] == null){
+      if((start.toDateString() === end.toDateString()) && (newMarkedDates[start.toISOString().split('T')[0]] == null)){
           newMarkedDates[start.toISOString().split('T')[0]] = {color: '#c97852', startingDay: true, endingDay: true}
-      } else if(start.toDateString() !== end.toDateString()) {
-        if (newMarkedDates[start.toISOString().split('T')[0]] == null) {
-          newMarkedDates[start.toISOString().split('T')[0]] = {color: '#c97852', startingDay: true}
-        } else {
-          newMarkedDates[start.toISOString().split('T')[0]] = {color: '#c97852'}
-        }
-        if (newMarkedDates[end.toISOString().split('T')[0]] == null) {
-          newMarkedDates[end.toISOString().split('T')[0]] = {color: '#c97852', endingDay: true}
-        } else {
-          newMarkedDates[end.toISOString().split('T')[0]] = {color: '#c97852'}
-        }
-        for(let i = 1; i < dates.length - 1; i++){
-          const d = dates[i];
-          newMarkedDates[d] = {color: '#c97852'}
+      } else {
+        if(start.toDateString() !== end.toDateString()) {
+          if (newMarkedDates[start.toISOString().split('T')[0]] == null) {
+            newMarkedDates[start.toISOString().split('T')[0]] = {color: '#c97852', startingDay: true}
+          } else {
+            newMarkedDates[start.toISOString().split('T')[0]] = {color: '#c97852'}
+          }
+          if (newMarkedDates[end.toISOString().split('T')[0]] == null) {
+            newMarkedDates[end.toISOString().split('T')[0]] = {color: '#c97852', endingDay: true}
+          } else {
+            newMarkedDates[end.toISOString().split('T')[0]] = {color: '#c97852'}
+          }
+          for (let i = 1; i < dates.length - 1; i++) {
+            const d = dates[i];
+            newMarkedDates[d] = {color: '#c97852'}
+          }
         }
       }
       this.setState({
@@ -651,7 +700,7 @@ export class AddScheduleScreen extends React.Component {
         <Item style={addScheduleStyles.input}>
           <Icon name='clock' style={globalStyles.icon}/>
           <Input placeholder="Heure de début" placeholderTextColor="#959DAD" ref="start" editable={false}
-                 value={this.state.startTime == null ? '' : this.state.startTime.getHours() + ':' + this.state.startTime.getMinutes()}/>
+                 value={this.state.startTime == null ? '' : this.formatOnlyTime(this.state.startTime)}/>
           <Button warning style={addScheduleStyles.inputButton}
                   onPress={() => this.setStartTime()}>
             <Icon name='create' />
@@ -660,7 +709,7 @@ export class AddScheduleScreen extends React.Component {
         <Item style={addScheduleStyles.input}>
           <Icon name='clock' style={globalStyles.icon}/>
           <Input placeholder="Heure de fin" placeholderTextColor="#959DAD" ref="start" editable={false}
-                 value={this.state.endTime == null ? '' : this.state.endTime.getHours() + ':' + this.state.endTime.getMinutes()}/>
+                 value={this.state.endTime == null ? '' : this.formatOnlyTime(this.state.endTime)}/>
           <Button warning style={addScheduleStyles.inputButton}
                   onPress={() => this.setEndTime()}>
             <Icon name='create' />
@@ -672,7 +721,7 @@ export class AddScheduleScreen extends React.Component {
         <Item style={addScheduleStyles.input}>
           <Icon name='clock' style={globalStyles.icon}/>
           <Input placeholder="Date de début" placeholderTextColor="#959DAD" ref="start" editable={false}
-                 value={this.state.startDate == null ? '' : this.state.startDate.toLocaleDateString()}/>
+                 value={this.state.startDate == null ? '' : this.formatOnlyDate(this.state.startDate)}/>
           <Button warning style={addScheduleStyles.inputButton}
             onPress={() => this.setStartDate()}>
             <Icon name='create' />
@@ -681,7 +730,7 @@ export class AddScheduleScreen extends React.Component {
         <Item style={addScheduleStyles.input}>
           <Icon name='clock' style={globalStyles.icon}/>
           <Input placeholder="Heure de début" placeholderTextColor="#959DAD" ref="start" editable={false}
-                 value={this.state.startTime == null ? '' : this.state.startTime.getHours() + ':' + this.state.startTime.getMinutes()}/>
+                 value={this.state.startTime == null ? '' :this.formatOnlyTime(this.state.startTime)}/>
           <Button warning style={addScheduleStyles.inputButton}
                   onPress={() => this.setStartTime()}>
             <Icon name='create' />
@@ -690,7 +739,7 @@ export class AddScheduleScreen extends React.Component {
         <Item style={addScheduleStyles.input}>
           <Icon name='clock' style={globalStyles.icon}/>
           <Input placeholder="Date de fin" placeholderTextColor="#959DAD" ref="end" editable={false}
-                 value={this.state.endDate == null ? '' : this.state.endDate.toLocaleDateString()}/>
+                 value={this.state.endDate == null ? '' : this.formatOnlyDate(this.state.endDate)}/>
           <Button warning style={addScheduleStyles.inputButton}
               onPress={() => this.setEndDate()}>
             <Icon name='create' />
@@ -699,7 +748,7 @@ export class AddScheduleScreen extends React.Component {
         <Item style={addScheduleStyles.input}>
           <Icon name='clock' style={globalStyles.icon}/>
           <Input placeholder="Heure de fin" placeholderTextColor="#959DAD" ref="start" editable={false}
-                 value={this.state.endTime == null ? '' : this.state.endTime.getHours() + ':' + this.state.endTime.getMinutes()}/>
+                 value={this.state.endTime == null ? '' : this.formatOnlyTime(this.state.endTime)}/>
           <Button warning style={addScheduleStyles.inputButton}
                   onPress={() => this.setEndTime()}>
             <Icon name='create' />
